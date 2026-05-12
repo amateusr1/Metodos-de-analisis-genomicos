@@ -11,7 +11,7 @@ conda activate sratools
 ```
 Una vez creado, se activa con conda activate sratools antes de cada sesión de trabajo.
 ### Activación en scripts SLURM y consola
-Los scripts SLURM no cargan el .bashrc automáticamente, tampoco la consola, por lo que se requiere cargar el módulo de anaconda explícitamente al inicio de cada script:
+Se requiere cargar el módulo de anaconda explícitamente al inicio de cada script:
 ```
 #En Scripts SLURM
 
