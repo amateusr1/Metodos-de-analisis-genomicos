@@ -10,11 +10,15 @@ conda create -n sratools -c bioconda sra-tools -y
 conda activate sratools
 ```
 Una vez creado, se activa con conda activate sratools antes de cada sesión de trabajo.
-###Activación en scripts SLURM
-Los scripts SLURM no cargan el .bashrc automáticamente, por lo que se requiere cargar el módulo de anaconda explícitamente al inicio de cada script:
+### Activación en scripts SLURM y consola
+Los scripts SLURM no cargan el .bashrc automáticamente, tampoco la consola, por lo que se requiere cargar el módulo de anaconda explícitamente al inicio de cada script:
 ```
+#En Scripts SLURM
 module load envs/anaconda3
 source $(conda info --base)/etc/profile.d/conda.sh
+conda activate sratools
+#En la consola para cargar el ambiente
+module load envs/anaconda3
 conda activate sratools
 ```
 ## Instalar sra-tools via mamba que resuelve dependencias mejor:
