@@ -1,2 +1,3 @@
 # Metodos-de-analisis-genomicos
 Repositorio de trabajo del curso de posgrado Métodos de Análisis de Datos Genómicos (2018846-6), Universidad Nacional de Colombia. 
+Contiene los scripts, flujos de trabajo, notas y reportes desarrollados a lo largo de los módulos: introducción a Linux, ensamblado de novo de genomas plastidiales, mapeo a genoma de referencia, llamada de variantes, análisis de diversidad genética a partir de datos de representación reducida (RADseq/GBS), etc. Los análisis se implementan en entornos de línea de comandos sobre clúster HPC, utilizando datos reales de secuenciación de nueva generación (NGS).
