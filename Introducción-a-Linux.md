@@ -24,4 +24,5 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Moverse entre directorios   | ```cd ../```|
 |  Listar objetos del directorio   | ```ls```|
 |  Crear archivo vacío .txt   | ```touch```|
+|  Otorgar permisos de ejecución a un archivo .sh  | ```chmod +x nombre_archivo.sh```|
 
