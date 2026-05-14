@@ -26,4 +26,5 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Crear archivo vacío .txt   | ```touch```|
 |  Otorgar permisos de ejecución a un archivo .sh  | ```chmod +x nombre_archivo.sh```|
 |  Verificar que el .fastq.gz este bien  |  ```zcat nombre*archivo /(Barra vertical) head -12``` |
+|  Limpiar la terminal  |  ```clear``` |
 
