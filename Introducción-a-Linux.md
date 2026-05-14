@@ -4,16 +4,18 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 
 | Función                        | Scripts                              |
 |--------------------------------|--------------------------------------|
+|  Borrar archivos   | ```rm```|
+|  Borrar directorios  | ```rm -r```|
 |  Nodos disponibles para someter Jobs  | ```sinfo```                          | 
 |  Someter Jobs  | ```sbatch```                         |
 |   Ver mis Jobs sometidos  | ```squeue -u amateusr```                          |
-|  Que nodos estan disponibles   | ```squeue -u amateusr```                          |
+|  Monitorear el progreso del output en tiempo real   | ```tail -f job1_67118480.out```                          |
 |  Ver lista de modulos | ```module avail```                          |
-|  Que nodos estan disponibles   | ```sinfo```                          |
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
+|  Crear un nuevo directorio  | ```mkdir```                          |
+|  Ver espacio disponible en el directorio  | ```df -h *```|
+|  Ver tamaño de archivos   | ```ls -lh```|
+|  Visualizar archivos   | ```cat```|
+|  Editar archivos   | ```nano```|
 |  Que nodos estan disponibles   | ```sinfo```|
 |  Que nodos estan disponibles   | ```sinfo```|
 |  Que nodos estan disponibles   | ```sinfo```|
