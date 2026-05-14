@@ -8,7 +8,7 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Borrar directorios  | ```rm -rf```|
 |  Nodos disponibles para someter Jobs  | ```sinfo -p *```                          | 
 |  Someter Jobs  | ```sbatch```                         |
-|   Ver mis Jobs sometidos  | ```squeue -u amateusr```                          |
+|  Ver mis Jobs sometidos  | ```squeue -u amateusr```                          |
 |  Monitorear el progreso del output en tiempo real   | ```tail -f *.out```                          |
 |  Ver lista de modulos | ```module avail```                          |
 |  Crear un nuevo directorio  | ```mkdir```                          |
@@ -21,13 +21,6 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Matar, finalizar un proceso   | ```Control + C```|
 |  Mover o renombrar   | ```mv```|
 |  Copiar archivos o directorios   | ```cp```|
-|  moverse entre directorios   | ```cd ../```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
+|  Moverse entre directorios   | ```cd ../```|
+|  Listar objetos del directorio   | ```ls```|
 
