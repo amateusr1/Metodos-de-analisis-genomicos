@@ -23,4 +23,5 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Copiar archivos o directorios   | ```cp```|
 |  Moverse entre directorios   | ```cd ../```|
 |  Listar objetos del directorio   | ```ls```|
+|  Crear archivo vacío .txt   | ```touch```|
 
