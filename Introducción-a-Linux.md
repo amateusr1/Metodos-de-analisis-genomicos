@@ -16,7 +16,7 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 |  Ver como crece la carpeta   | ```du -sh```|
 |  Ver tamaño de archivos   | ```ls -lh```|
 |  Visualizar archivos   | ```cat```|
-|  Editar archivos   | ```nano```|
+|  Editar archivos   | ```nano - Guarda con Ctrl+O, Enter, Ctrl+X y lanza```|
 |  Cancelar un Job   | ```scancel```|
 |  Matar, finalizar un proceso   | ```Control + C```|
 |  Mover o renombrar   | ```mv```|
