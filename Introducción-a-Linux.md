@@ -4,11 +4,11 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 
 | Función                        | Scripts                              |
 |--------------------------------|--------------------------------------|
-|  Nodos disponibles cargar Jobs  | ```sinfo```                          | 
-|  Que nodos estan disponibles   | ```sbatch```                         |
-|  Que nodos estan disponibles   | ```sinfo```                          |
-|  Que nodos estan disponibles   | ```sinfo```                          |
-|  Que nodos estan disponibles   | ```sinfo```                          |
+|  Nodos disponibles para someter Jobs  | ```sinfo```                          | 
+|  Someter Jobs  | ```sbatch```                         |
+|   Ver mis Jobs sometidos  | ```squeue -u amateusr```                          |
+|  Que nodos estan disponibles   | ```squeue -u amateusr```                          |
+|  Ver lista de modulos | ```module avail```                          |
 |  Que nodos estan disponibles   | ```sinfo```                          |
 |  Que nodos estan disponibles   | ```sinfo```|
 |  Que nodos estan disponibles   | ```sinfo```|
