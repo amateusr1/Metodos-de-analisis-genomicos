@@ -5,22 +5,23 @@ Este archivo reúne una serie de comandos básicos y útiles de Linux orientados
 | Función                        | Scripts                              |
 |--------------------------------|--------------------------------------|
 |  Borrar archivos   | ```rm```|
-|  Borrar directorios  | ```rm -r```|
-|  Nodos disponibles para someter Jobs  | ```sinfo```                          | 
+|  Borrar directorios  | ```rm -rf```|
+|  Nodos disponibles para someter Jobs  | ```sinfo -p *```                          | 
 |  Someter Jobs  | ```sbatch```                         |
 |   Ver mis Jobs sometidos  | ```squeue -u amateusr```                          |
-|  Monitorear el progreso del output en tiempo real   | ```tail -f job1_67118480.out```                          |
+|  Monitorear el progreso del output en tiempo real   | ```tail -f *.out```                          |
 |  Ver lista de modulos | ```module avail```                          |
 |  Crear un nuevo directorio  | ```mkdir```                          |
 |  Ver espacio disponible en el directorio  | ```df -h *```|
+|  Ver como crece la carpeta   | ```du -sh```|
 |  Ver tamaño de archivos   | ```ls -lh```|
 |  Visualizar archivos   | ```cat```|
 |  Editar archivos   | ```nano```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
-|  Que nodos estan disponibles   | ```sinfo```|
+|  Cancelar un Job   | ```scancel```|
+|  Matar, finalizar un proceso   | ```Control + C```|
+|  Mover o renombrar   | ```mv```|
+|  Copiar archivos o directorios   | ```cp```|
+|  moverse entre directorios   | ```cd ../```|
 |  Que nodos estan disponibles   | ```sinfo```|
 |  Que nodos estan disponibles   | ```sinfo```|
 |  Que nodos estan disponibles   | ```sinfo```|
