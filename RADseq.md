@@ -56,54 +56,25 @@ Las técnicas RADseq surgieron para resolver un problema común en genómica: se
 
 En muchos estudios de genética de poblaciones, evolución o filogenómica, basta con analizar miles de marcadores distribuidos por todo el genoma para responder preguntas biológicas.
 
-RADseq permite obtener esos marcadores de manera eficiente y reproducible.
+RADseq permite obtener esos marcadores de manera eficiente y reproducible, multiplexar numerosos individuos en una misma corrida de secuenciación y reducir considerablemente el costo respecto al WGS.
 
 ---
 
-# Características generales
+# Los métodos RADseq
 
-Las técnicas RADseq presentan varias características comunes:
+Desde la publicación del protocolo original en 2008, numerosos investigadores han desarrollado variantes que buscan simplificar el protocolo, disminuir costos o mejorar la reproducibilidad. Cada variante modifica alguna etapa del procedimiento, como el número de enzimas utilizadas, la forma de seleccionar los fragmentos o el método de preparación de bibliotecas.
 
-- Utilizan enzimas de restricción para reducir la complejidad del genoma.
-- Generan miles o decenas de miles de SNPs.
-- Son compatibles con especies modelo y no modelo.
-- Permiten multiplexar numerosos individuos en una misma corrida de secuenciación.
-- Reducen considerablemente el costo respecto al WGS.
-
----
-
-# Aplicaciones
-
-Actualmente RADseq se utiliza ampliamente en:
-
-- Genética de poblaciones.
-- Filogenómica.
-- Filogeografía.
-- Genómica de la conservación.
-- Delimitación de especies.
-- Estudios de adaptación local.
-- Cartografía genética.
-- Descubrimiento de SNPs.
-
----
-
-# Evolución de los métodos RADseq
-
-Desde la publicación del protocolo original en 2008, numerosos investigadores han desarrollado variantes que buscan simplificar el protocolo, disminuir costos o mejorar la reproducibilidad.
-
-Cada variante modifica alguna etapa del procedimiento, como el número de enzimas utilizadas, la forma de seleccionar los fragmentos o el método de preparación de bibliotecas.
-
-| Método | Año | Principal modificación |
-|---------|----:|------------------------|
-| RRL | 2006 | Primer enfoque de representación reducida mediante selección de tamaño. |
-| RADseq | 2008 | Introduce sitios de restricción y fragmentación mecánica del ADN. |
-| GBS | 2010 | Elimina la fragmentación mecánica y simplifica la preparación de bibliotecas. |
-| 2bRAD | 2011 | Utiliza enzimas tipo IIB que generan fragmentos de longitud uniforme. |
-| ddRADseq | 2012 | Emplea dos enzimas de restricción y elimina la sonicación. |
-| ezRAD | 2013 | Adapta RADseq para utilizar kits comerciales estándar de Illumina. |
-| MSG | 2012 | Diseñado para genotipado de alta eficiencia mediante multiplexación. |
-| CRoPS | 2011 | Reduce la complejidad utilizando dos enzimas y bibliotecas específicas. |
-| SBG | 2012 | Emplea una combinación de cortadores frecuentes y raros para controlar el número de loci. |
+| Método | Año | Descripción |
+|---------|:---:|-------------|
+| **RRL (Reduced Representation Libraries)** | 2006 | Primer método de representación reducida del genoma. Utiliza una enzima de restricción seguida de una selección directa de fragmentos por tamaño antes de la secuenciación. |
+| **RADseq** | 2008 | Introduce el uso de adaptadores específicos para sitios de restricción y una fragmentación mecánica (sonicación) del ADN para obtener miles de loci distribuidos por el genoma. |
+| **GBS (Genotyping-by-Sequencing)** | 2010 | Simplifica el protocolo de RADseq eliminando la sonicación y la selección física de tamaño, reduciendo costos y permitiendo el procesamiento de un gran número de muestras. |
+| **CRoPS (Complexity Reduction of Polymorphic Sequences)** | 2011 | Emplea dos enzimas de restricción para reducir la complejidad del genoma y generar bibliotecas dirigidas al descubrimiento de polimorfismos. |
+| **2bRAD** | 2011 | Utiliza enzimas de restricción tipo IIB, las cuales producen fragmentos de longitud uniforme (≈33–36 pb), simplificando el análisis bioinformático. |
+| **ddRADseq (Double Digest RADseq)** | 2012 | Sustituye la fragmentación mecánica por una segunda enzima de restricción, aumentando la reproducibilidad y permitiendo controlar el número de loci mediante la selección de tamaño. |
+| **MSG (Multiplexed Shotgun Genotyping)** | 2012 | Diseñado para el genotipado masivo mediante multiplexación, optimizando la construcción de mapas genéticos y estudios de genética de poblaciones. |
+| **SBG (Sequence-Based Genotyping)** | 2012 | Combina enzimas de corte frecuente y raro para seleccionar un subconjunto específico de loci, disminuyendo la complejidad del genoma de forma controlada. |
+| **ezRAD** | 2013 | Adapta RADseq para utilizar kits comerciales estándar de preparación de bibliotecas Illumina, facilitando su implementación en organismos no modelo. |
 
 ---
 
