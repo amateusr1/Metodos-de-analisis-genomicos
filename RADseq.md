@@ -33,7 +33,7 @@ Aunque existen diferentes variantes, todas comparten el mismo principio:
 </p>
 
 <p align="center">
-<b>Figura 1.</b> Esquema general del protocolo RADseq.
+<b>Figura 1.</b> Esquema general de la preparación de bibliotecas basadas en sitios de restricción (RADseq). El diagrama resume las etapas comunes a la familia de métodos RADseq. Dependiendo del protocolo empleado, la reducción adicional de la complejidad del genoma puede realizarse mediante fragmentación mecánica (RADseq original) o mediante una segunda digestión con enzimas de restricción (ddRADseq).
 </p>
 
 ---
