@@ -25,11 +25,11 @@ Aunque existen diferentes variantes, todas comparten el mismo principio:
 5. Amplificación mediante PCR.
 6. Secuenciación en plataformas Illumina.
 7. Identificación de SNPs y otros polimorfismos.
+   
+---
 
-```
 <img width="720" height="1280" alt="image" src="https://github.com/user-attachments/assets/b3c91d55-c2f1-414f-a477-d907fc421683" />}
 
-```
 ---
 
 # ¿Por qué utilizar RADseq?
