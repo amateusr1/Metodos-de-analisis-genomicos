@@ -27,8 +27,14 @@ Aunque existen diferentes variantes, todas comparten el mismo principio:
 7. Identificación de SNPs y otros polimorfismos.
    
 ---
+<p align="center">
+  <img width="720" height="1280" alt="image" src="https://github.com/user-attachments/assets/b3c91d55-c2f1-414f-a477-d907fc421683" />
 
-<img width="720" height="1280" alt="image" src="https://github.com/user-attachments/assets/b3c91d55-c2f1-414f-a477-d907fc421683" />}
+</p>
+
+<p align="center">
+<b>Figura 1.</b> Esquema general del protocolo RADseq.
+</p>
 
 ---
 
