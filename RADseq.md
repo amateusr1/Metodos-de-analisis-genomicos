@@ -27,26 +27,7 @@ Aunque existen diferentes variantes, todas comparten el mismo principio:
 7. Identificación de SNPs y otros polimorfismos.
 
 ```
-ADN genómico
-      │
-      ▼
-Digestión con enzimas
-      │
-      ▼
-Ligación de adaptadores
-      │
-      ▼
-Selección de fragmentos
-      │
-      ▼
-PCR
-      │
-      ▼
-Secuenciación
-      │
-      ▼
-SNPs
-```
+<img width="720" height="1280" alt="image" src="https://github.com/user-attachments/assets/b3c91d55-c2f1-414f-a477-d907fc421683" />}
 
 ---
 
