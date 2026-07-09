@@ -32,6 +32,8 @@ El alineamiento de millones de lecturas representa por tanto un problema computa
 
 El objetivo del alineamiento **read mapping**, consiste en localizar la posición más probable del genoma donde se originó cada lectura generada por el secuenciador. La correcta ubicación de las lecturas resulta indispensable para todas las etapas posteriores del análisis. Si una lectura es alineada en una posición incorrecta, cualquier diferencia observada respecto al genoma de referencia podría interpretarse erróneamente como una variante genética cuando en realidad corresponde a un error de alineamiento. Por esta razón, el alineamiento constituye el paso crítico sobre cualquier estudio.
 
+<img width="782" height="455" alt="image" src="https://github.com/user-attachments/assets/8cd124c2-0071-48d7-b2a6-349354d9e67a" />
+
 ---
 # Algoritmos modernos de alineamiento
 
@@ -73,11 +75,25 @@ Una vez identificadas una o varias regiones candidatas mediante la búsqueda de 
 
 El algoritmo asigna una puntuación a cada posible alineamiento mediante un sistema de recompensas y penalizaciones. Las coincidencias exactas (*matches*) incrementan la puntuación total, mientras que las sustituciones (*mismatches*), inserciones (*insertions*) y deleciones (*deletions*), conocidas conjuntamente como **indels**, reciben penalizaciones proporcionales a su longitud y frecuencia esperada. De esta manera, el algoritmo identifica el alineamiento óptimo que maximiza la similitud entre la lectura y la referencia.
 
-Otra característica importante de esta etapa es la posibilidad de realizar **alineamiento local**, permitiendo el recorte (*soft clipping*) de nucleótidos localizados en los extremos de la lectura cuando presentan baja calidad o corresponden a adaptadores remanentes del proceso de secuenciación. Esto mejora la precisión del alineamiento y aumenta la probabilidad de mapear correctamente lecturas que, de otro modo, serían descartadas.
+Otra característica importante de esta etapa es la posibilidad de realizar **alineamiento local**, permitiendo el recorte automatico (*soft clipping*) de nucleótidos localizados en los extremos de la lectura cuando presentan baja calidad o corresponden a adaptadores remanentes del proceso de secuenciación. Esto mejora la precisión del alineamiento y aumenta la probabilidad de mapear correctamente lecturas que, de otro modo, serían descartadas.
+
+<p align="center">
+  <img width="850" height="550" alt="image" src="https://github.com/user-attachments/assets/fd49b62e-f5ff-420f-ab00-050da39c6de3" />
+
+</p>
+
+<p align="center">
+<b>Figura 2.</b> Esquema general de la estrategia seed-and-extend utilizada por alineadores modernos como Bowtie2 y BWA-MEN. La estructura de datos corresponde al FM-index, construido a partir de la Transformada de Burrows-Wheeler (BWT), el cual permite localizar rápidamente las posiciones de cada semilla dentro del genoma de referencia. 
+  
+</p>
 
 ### 5. Evaluación del alineamiento:
 
-Finalmente, el alineamiento obtenido es evaluado mediante un sistema de puntuación que considera la longitud del alineamiento, el número de coincidencias, las penalizaciones por indels y mismatches, así como la existencia de posibles alineamientos alternativos en otras regiones del genoma. Con esta información, el programa selecciona el mejor alineamiento para cada lectura y calcula posteriormente el **Mapping Quality Score (MAPQ)**, que representa la confianza estadística de que la lectura ha sido ubicada en la posición correcta del genoma de referencia.
+Una vez finalizado el proceso de alineamiento, herramientas como Bowtie2 o BWA-MEM generan como salida un archivo en formato SAM (Sequence Alignment/Map). Cada registro del archivo corresponde a una lectura alineada e incluye información calculada directamente por el alineador, como la posición de mapeo, la calidad del alineamiento (MAPQ), la cadena CIGAR, que describe cómo se alineó la lectura respecto al genoma de referencia, y el campo FLAG, que codifica mediante representación binaria el estado y las características del alineamiento. Posteriormente, el archivo SAM suele convertirse al formato binario BAM mediante herramientas como SAMtools, lo que permite reducir el espacio de almacenamiento y optimizar las operaciones de ordenamiento, indexación y análisis posteriores.
+
+#### **Mapping Quality Score (MAPQ)** 
+
+El alineamiento obtenido es evaluado mediante un sistema de puntuación que considera la longitud del alineamiento, el número de coincidencias, las penalizaciones por indels y mismatches, así como la existencia de posibles alineamientos alternativos en otras regiones del genoma. Con esta información, el programa selecciona el mejor alineamiento para cada lectura y calcula posteriormente el **Mapping Quality Score (MAPQ)**, que representa la confianza estadística de que la lectura ha sido ubicada en la posición correcta del genoma de referencia.
 
 El valor de MAPQ se almacena en el archivo **SAM (Sequence Alignment/Map)**, específicamente en la quinta columna de cada registro de alineamiento, y se conserva posteriormente en su versión binaria BAM. Cada línea del archivo SAM representa una lectura individual e incluye información como el nombre de la lectura, el cromosoma de alineamiento, la posición genómica, el valor de MAPQ, la cadena CIGAR y otros campos que describen las características del alineamiento. De esta manera, el archivo SAM/BAM contiene toda la información necesaria para evaluar la calidad del mapeo y constituye el principal insumo para las etapas posteriores del análisis bioinformático.
 
@@ -85,42 +101,29 @@ El MAPQ se expresa mediante una escala Phred, en la que valores más altos indic
 
 Durante el llamado de variantes, el valor de MAPQ constituye uno de los principales criterios para evaluar la confiabilidad de las lecturas. Generalmente, las lecturas con valores bajos de MAPQ son descartadas o reciben un menor peso en el análisis, ya que presentan una mayor probabilidad de estar alineadas incorrectamente y, por lo tanto, de generar falsos positivos en la identificación de SNPs e inserciones o deleciones (indels).
 
+#### **La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)**
+
+**La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)** es otro de los campos importantes del formato SAM/BAM, ya que describe de manera compacta cómo una lectura se alinea con respecto al genoma de referencia. Esta cadena resume todas las operaciones necesarias para representar el alineamiento, indicando las coincidencias, discrepancias, inserciones, deleciones y otras modificaciones presentes entre la lectura y la secuencia de referencia. Gracias a esta información, es posible reconstruir el alineamiento sin necesidad de comparar nuevamente la lectura con el genoma.
+
+Cada operación de la cadena CIGAR está representada por un número seguido de una letra. El número indica la cantidad de nucleótidos involucrados y la letra especifica el tipo de operación realizada. Entre las operaciones más utilizadas se encuentran M, que representa posiciones alineadas y puede incluir tanto coincidencias (matches) como sustituciones (mismatches); I, que indica una inserción de nucleótidos en la lectura con respecto al genoma de referencia; y D, que representa una deleción en la lectura respecto a la referencia.
+
+Asimismo, la operación N indica una región omitida del genoma, utilizada principalmente en alineamientos de RNA-Seq para representar intrones. La letra S (soft clipping) señala que determinados nucleótidos de los extremos de la lectura fueron excluidos del alineamiento, aunque permanecen almacenados en el archivo SAM. En cambio, H (hard clipping) elimina completamente esos nucleótidos del registro del alineamiento. Finalmente, los símbolos = y X permiten distinguir explícitamente entre coincidencias exactas y sustituciones, respectivamente, aunque muchos alineadores continúan utilizando la operación M para representar ambas situaciones.
+
+Por ejemplo, una cadena 76M indica que los 76 nucleótidos de la lectura fueron alineados de forma continua respecto al genoma de referencia. Una cadena 35M2I39M significa que después de los primeros 35 nucleótidos alineados existe una inserción de dos nucleótidos en la lectura, seguida por otros 39 nucleótidos alineados. Por su parte, una cadena 20S56M indica que los primeros 20 nucleótidos fueron recortados mediante soft clipping, mientras que los 56 nucleótidos restantes participaron en el alineamiento. Estas operaciones permiten representar de forma precisa eventos biológicos como inserciones y deleciones, además de corregir problemas derivados de regiones de baja calidad o adaptadores residuales presentes en las lecturas.
+
+#### **El campo FLAG**
+
+**El campo FLAG** es un valor numérico presente en cada registro del archivo SAM/BAM que almacena información sobre el estado y las características del alineamiento de una lectura. A diferencia de otros campos, el FLAG no representa un único atributo, sino que utiliza una codificación binaria, en la cual cada bit indica una propiedad específica de la lectura. De esta manera, un único número puede contener simultáneamente múltiples características del alineamiento.
+
+Entre las propiedades más importantes codificadas por el campo FLAG se encuentran si la lectura pertenece a un experimento paired-end, si ambas lecturas de un par fueron alineadas correctamente, si la lectura o su pareja no lograron alinearse al genoma de referencia, si la lectura se encuentra alineada sobre la hebra directa o reversa, si corresponde a un duplicado generado durante la amplificación por PCR y si el alineamiento es secundario o suplementario. Esta información permite describir completamente el estado de cada lectura dentro del análisis bioinformático.
+
+Durante las etapas posteriores del procesamiento de datos, el campo FLAG constituye un criterio fundamental para el filtrado de lecturas. Herramientas como SAMtools, Picard y GATK utilizan estos indicadores para excluir lecturas duplicadas, alineamientos secundarios o lecturas que no cumplen los criterios mínimos de calidad, reduciendo así la probabilidad de introducir errores durante el llamado de variantes. En consecuencia, la correcta interpretación del campo FLAG contribuye a mejorar la confiabilidad del análisis y a obtener un conjunto de variantes genéticas de mayor calidad.
+
 Un alineamiento de alta calidad constituye por tanto el requisito indispensable para el descubrimiento confiable de variantes.
 
 ---
 
 
-# 4.6.3 Modos de alineamiento
-
-Bowtie2 permite dos estrategias principales.
-
-## End-to-End Alignment
-
-En este modo toda la lectura debe alinearse completamente contra el genoma.
-
-No se permite eliminar nucleótidos en los extremos.
-
-Este método resulta apropiado cuando las lecturas poseen excelente calidad y prácticamente no contienen adaptadores.
-
-Su ventaja principal consiste en producir alineamientos más estrictos.
-
-Sin embargo, puede disminuir la tasa de mapeo cuando existen regiones de baja calidad.
-
----
-
-## Local Alignment
-
-En el alineamiento local Bowtie2 permite recortar automáticamente regiones terminales de baja calidad mediante **soft clipping**.
-
-El algoritmo conserva únicamente la parte de la lectura que produce el mejor alineamiento.
-
-Este modo resulta especialmente útil cuando:
-
-- permanecen adaptadores residuales;
-- existen errores de secuenciación en los extremos;
-- algunas bases presentan baja calidad.
-
-Actualmente constituye uno de los modos más utilizados para datos Illumina.
 
 ---
 
@@ -156,49 +159,6 @@ La información adicional mejora considerablemente:
 - la detección de variantes estructurales.
 
 Por esta razón, la mayoría de los estudios modernos de resecuenciación utilizan secuenciación paired-end.
-
----
-
-# 4.6.5 Ventajas de Bowtie2
-
-Entre sus principales ventajas destacan:
-
-- muy bajo consumo de memoria;
-- elevada velocidad de alineamiento;
-- excelente precisión para lecturas cortas;
-- soporte para indels;
-- alineamiento local y global;
-- soporte para paired-end;
-- amplia compatibilidad con SAMtools y GATK;
-- integración en prácticamente todos los pipelines de bioinformática.
-
----
-
-# 4.6.6 Limitaciones
-
-A pesar de sus ventajas, Bowtie2 presenta algunas limitaciones.
-
-No fue diseñado para:
-
-- lecturas extremadamente largas (Oxford Nanopore o PacBio);
-- alineamientos altamente divergentes;
-- RNA-Seq con intrones complejos.
-
-En estos casos suelen emplearse herramientas como STAR, Minimap2 o BWA-MEM.
-
----
-
-# 4.6.7 Comparación con otros alineadores
-
-| Herramienta | Tipo principal | Indels | Local | Spliced | Lecturas largas |
-|-------------|---------------|---------|--------|-----------|----------------|
-| Bowtie | Lecturas cortas | Limitado | No | No | No |
-| Bowtie2 | Lecturas cortas | Sí | Sí | No | Limitado |
-| BWA-MEM | ADN genómico | Sí | Sí | No | Sí |
-| STAR | RNA-Seq | Sí | Sí | Sí | No |
-| Minimap2 | Long Reads | Sí | Sí | Sí | Sí |
-
-
 
 
 ---
@@ -276,65 +236,7 @@ Durante el llamado de variantes suelen descartarse lecturas con valores bajos de
 
 ---
 
-# 4.7.3 Cadena CIGAR
 
-La cadena **CIGAR (Compact Idiosyncratic Gapped Alignment Report)** describe exactamente cómo fue alineada cada lectura respecto al genoma.
-
-Las operaciones más comunes son:
-
-| Símbolo | Significado |
-|----------|-------------|
-| M | Match o mismatch |
-| I | Inserción |
-| D | Deleción |
-| N | Región omitida |
-| S | Soft clipping |
-| H | Hard clipping |
-| = | Coincidencia exacta |
-| X | Mismatch |
-
-Ejemplo:
-
-```
-76M
-```
-
-La lectura coincide completamente.
-
-Ejemplo:
-
-```
-35M2I39M
-```
-
-Existe una inserción de dos nucleótidos.
-
-Ejemplo:
-
-```
-20S56M
-```
-
-Los primeros veinte nucleótidos fueron recortados mediante soft clipping.
-
----
-
-# 4.7.4 FLAGS
-
-El campo FLAG corresponde a un número entero que codifica múltiples propiedades del alineamiento mediante representación binaria.
-
-Entre las más importantes se encuentran:
-
-- lectura paired-end;
-- lectura correctamente apareada;
-- lectura no alineada;
-- pareja no alineada;
-- lectura en hebra reversa;
-- duplicado por PCR;
-- alineamiento secundario;
-- alineamiento suplementario.
-
-Estos indicadores permiten filtrar lecturas antes del llamado de variantes.
 
 ---
 
