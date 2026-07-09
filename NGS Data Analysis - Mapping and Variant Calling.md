@@ -35,17 +35,61 @@ El objetivo del alineamiento **read mapping**, consiste en localizar la posició
 ---
 # 4.5 Algoritmos modernos de alineamiento
 
-Los alineadores actuales emplean una estrategia denominada **Seed-and-Extend**, diseñada para acelerar el proceso de búsqueda. En lugar de comparar la lectura completa contra todas las posiciones del genoma, el algoritmo divide inicialmente cada lectura en pequeños fragmentos llamados **semillas** (*seeds - k-mers*), generalmente de entre 20 y 30 nucleótidos. Cada una de estas semillas se busca rápidamente utilizando el FM-index. Una vez encontrada una coincidencia potencial, el algoritmo extiende el alineamiento hacia ambos extremos utilizando técnicas de programación dinámica. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
+Los alineadores actuales emplean una estrategia denominada **Seed-and-Extend**, diseñada para acelerar el proceso de búsqueda. En lugar de comparar la lectura completa contra todas las posiciones del genoma, el algoritmo divide inicialmente cada lectura en pequeños fragmentos llamados **semillas** (*seeds - k-mers*). Cada una de estas semillas se busca rápidamente utilizando el FM-index. Una vez encontrada una coincidencia potencial, el algoritmo extiende el alineamiento hacia ambos extremos utilizando técnicas de programación dinámica. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
+
+La estrategia Seed-and-Extend representa actualmente la base computacional de la mayoría de los alineadores modernos utilizados en genómica, incluyendo Bowtie2, BWA-MEM y otros algoritmos ampliamente empleados en proyectos de resecuenciación. Este enfoque presenta múltiples ventajas: disminuye considerablemente el tiempo de ejecución; reduce el consumo de memoria; permite detectar pequeñas inserciones y deleciones; mejora la precisión del alineamiento en regiones variables y facilita el procesamiento de millones de lecturas en tiempos razonables.
+
+El funcionamiento interno de los principales alineadores de lecturas cortas incluye:
+
+**1. Construcción del índice:** Antes de iniciar el alineamiento, el genoma de referencia es transformado mediante la Burrows-Wheeler Transform y posteriormente indexado utilizando el FM-index. **La Transformada de Burrows-Wheeler (Burrows-Wheeler Transform, BWT)** constituye una transformación reversible que reorganiza los caracteres del genoma para agrupar regiones similares sin modificar la información original. Inicialmente fue desarrollada para algoritmos de compresión de datos, pero posteriormente se demostró que esta transformación permite realizar búsquedas extremadamente eficientes sobre secuencias biológicas. Sobre la BWT se construye el denominado **FM-index**, una estructura de datos que permite localizar rápidamente cualquier subsecuencia dentro del genoma sin necesidad de recorrerlo completamente. Gracias al FM-index, herramientas como Bowtie2 y BWA pueden localizar millones de lecturas utilizando únicamente unos pocos gigabytes de memoria RAM, incluso para genomas de gran tamaño. La combinación BWT–FM-index constituye actualmente el estándar para el alineamiento de lecturas cortas. Esta etapa solamente debe ejecutarse una vez para cada genoma.
+
+**2. Selección de semillas:** Cada lectura es dividida en pequeños fragmentos (seeds). Las semillas corresponden a pequeños kmers cuya longitud varia. Estas semillas son buscadas dentro del índice del genoma. El valor k, que corresponde a la longitud, expresada en número de nucleótidos, de las subsecuencias o k-mers utilizadas como semillas (seeds) durante el proceso de búsqueda. Es uno de los parámetros fundamentales en los algoritmos de alineamiento. En lugar de comparar una lectura completa contra todas las posiciones del genoma de referencia, el alineador la divide en pequeños fragmentos de longitud k. Cada uno de estos fragmentos se busca rápidamente en el índice del genoma mediante estructuras de datos como el FM-index, permitiendo identificar regiones candidatas donde posteriormente se realiza el alineamiento completo mediante la estrategia seed-and-extend.
+
+La elección del tamaño del k-mer representa un compromiso entre sensibilidad y velocidad del alineamiento: Valores pequeños de k generan un mayor número de coincidencias potenciales, incrementando la sensibilidad del algoritmo y permitiendo detectar variantes o errores de secuenciación. Sin embargo, también aumentan el tiempo de ejecución y la probabilidad de obtener alineamientos ambiguos, especialmente en regiones repetitivas. Valores grandes de k producen menos coincidencias, acelerando el proceso de alineamiento y reduciendo el número de falsos emparejamientos. No obstante, disminuyen la sensibilidad cuando las lecturas contienen errores o múltiples variantes respecto al genoma de referencia. Por esta razón, los alineadores no utilizan un único valor fijo de k, sino estrategias adaptativas que optimizan automáticamente la longitud y el número de semillas según las características de las lecturas y del genoma analizado.
+
+---
+
+### 3. Búsqueda rápida
+
+Cada seed es localizada mediante el FM-index.
+
+En esta etapa el algoritmo identifica únicamente regiones candidatas donde podría encontrarse la lectura completa.
+
+Esto reduce drásticamente el número de comparaciones necesarias. 
+
+---
+
+### 4. Extensión del alineamiento
+
+Una vez encontrada una coincidencia potencial, Bowtie2 utiliza programación dinámica basada en Smith-Waterman para extender el alineamiento hacia ambos extremos. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
 
 Este enfoque presenta múltiples ventajas:
 
-- disminuye considerablemente el tiempo de ejecución;
-- reduce el consumo de memoria;
-- permite detectar pequeñas inserciones y deleciones;
-- mejora la precisión del alineamiento en regiones variables;
-- facilita el procesamiento de millones de lecturas en tiempos razonables.
+Durante esta fase se permiten:
 
-La estrategia Seed-and-Extend representa actualmente la base computacional de la mayoría de los alineadores modernos utilizados en genómica, incluyendo Bowtie2, BWA-MEM y otros algoritmos ampliamente empleados en proyectos de resecuenciación.
+- sustituciones
+- inserciones
+- deleciones
+- regiones parcialmente alineadas
+
+Por esta razón Bowtie2 puede detectar pequeños indels con mucha mayor precisión que Bowtie original.
+
+---
+
+### 5. Evaluación del alineamiento
+
+Finalmente el algoritmo calcula un puntaje para cada alineamiento considerando:
+
+- número de mismatches;
+- inserciones;
+- deleciones;
+- calidad de las bases;
+- alineamientos alternativos.
+
+A partir de esta información se calcula posteriormente el **Mapping Quality Score (MAPQ)**.
+
+---
+
 
 
 
@@ -82,21 +126,11 @@ El principal desafío computacional del alineamiento consiste en realizar búsqu
 
 Para resolver este problema, los alineadores modernos no comparan directamente cada lectura contra toda la secuencia del genoma. En su lugar, construyen previamente un índice comprimido que facilita las búsquedas.
 
-## 4.4.1 Transformada de Burrows-Wheeler (BWT)
 
-La Transformada de Burrows-Wheeler (Burrows-Wheeler Transform, BWT) constituye una transformación reversible que reorganiza los caracteres del genoma para agrupar regiones similares sin modificar la información original.
-
-Aunque inicialmente fue desarrollada para algoritmos de compresión de datos, posteriormente se demostró que esta transformación permite realizar búsquedas extremadamente eficientes sobre secuencias biológicas.
-
-Su principal ventaja consiste en reducir significativamente el espacio de memoria requerido para almacenar el genoma, manteniendo al mismo tiempo tiempos de búsqueda muy bajos.
 
 ## 4.4.2 FM-index
 
-Sobre la BWT se construye el denominado **FM-index**, una estructura de datos que permite localizar rápidamente cualquier subsecuencia dentro del genoma sin necesidad de recorrerlo completamente.
 
-Gracias al FM-index, herramientas como Bowtie2 y BWA pueden localizar millones de lecturas utilizando únicamente unos pocos gigabytes de memoria RAM, incluso para genomas de gran tamaño.
-
-La combinación BWT–FM-index constituye actualmente el estándar para el alineamiento de lecturas cortas debido a su excelente equilibrio entre velocidad, consumo de memoria y precisión.
 
 ---
 
@@ -119,6 +153,9 @@ Este enfoque presenta múltiples ventajas:
 - facilita el procesamiento de millones de lecturas en tiempos razonables.
 
 La estrategia Seed-and-Extend representa actualmente la base computacional de la mayoría de los alineadores modernos utilizados en genómica, incluyendo Bowtie2, BWA-MEM y otros algoritmos ampliamente empleados en proyectos de resecuenciación.
+
+
+
 # 4.6 Bowtie y Bowtie2
 
 ## 4.6.1 Introducción
@@ -131,68 +168,7 @@ Bowtie2 es actualmente empleado en proyectos de resecuenciación genómica, secu
 
 ---
 
-## 4.6.2 Principio de funcionamiento
 
-El funcionamiento interno de Bowtie2 puede dividirse en cinco etapas principales.
-
-### 1. Construcción del índice
-
-Antes de iniciar el alineamiento, el genoma de referencia es transformado mediante la Burrows-Wheeler Transform y posteriormente indexado utilizando el FM-index.
-
-Este índice permite localizar rápidamente cualquier subsecuencia dentro del genoma sin recorrer completamente la secuencia de referencia.
-
-Esta etapa solamente debe ejecutarse una vez para cada genoma.
-
----
-
-### 2. Selección de semillas
-
-Cada lectura es dividida en pequeños fragmentos (seeds).
-
-Las semillas corresponden a pequeños kmers cuya longitud suele variar entre 20 y 30 nucleótidos.
-
-Estas semillas son buscadas dentro del índice del genoma.
-
----
-
-### 3. Búsqueda rápida
-
-Cada seed es localizada mediante el FM-index.
-
-En esta etapa el algoritmo identifica únicamente regiones candidatas donde podría encontrarse la lectura completa.
-
-Esto reduce drásticamente el número de comparaciones necesarias.
-
----
-
-### 4. Extensión del alineamiento
-
-Una vez encontrada una coincidencia potencial, Bowtie2 utiliza programación dinámica basada en Smith-Waterman para extender el alineamiento hacia ambos extremos.
-
-Durante esta fase se permiten:
-
-- sustituciones
-- inserciones
-- deleciones
-- regiones parcialmente alineadas
-
-Por esta razón Bowtie2 puede detectar pequeños indels con mucha mayor precisión que Bowtie original.
-
----
-
-### 5. Evaluación del alineamiento
-
-Finalmente el algoritmo calcula un puntaje para cada alineamiento considerando:
-
-- número de mismatches;
-- inserciones;
-- deleciones;
-- calidad de las bases;
-- alineamientos alternativos.
-
-A partir de esta información se calcula posteriormente el **Mapping Quality Score (MAPQ)**.
-
----
 
 # 4.6.3 Modos de alineamiento
 
