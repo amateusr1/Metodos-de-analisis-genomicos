@@ -130,6 +130,47 @@ El uso extendido de ddRADseq impulsó variantes y protocolos derivados que busca
 
 ---
 
+# Otros Métodos de reducción de la complejidad genómica: Multiplex PCR y Target Enrichment
+
+## Multiplex PCR
+
+Multiplex PCR es una estrategia de reducción de la complejidad del genoma que, a diferencia de las tecnologias ddRADseq, no depende de enzimas de restricción sino de la amplificación dirigida y simultánea de múltiples regiones genómicas específicas mediante el diseño de varios pares de primers en una sola reacción. Su principio central es la selección a priori de los loci de interés (genes candidatos, regiones microsatélite, SNPs previamente identificados), lo que la convierte en un método altamente dirigido en contraste con los métodos de reducción "al azar" como ddRADseq.
+
+El protocolo original consta de los siguientes pasos: 
+
+1. Diseño de primers: Se diseñan múltiples pares de primers específicos para las regiones genómicas de interés, cuidando evitar la formación de dímeros de primers y asegurando temperaturas de alineamiento (Tm) compatibles entre todos los pares incluidos en la reacción.
+2. Amplificación simultánea: El ADN genómico de cada muestra se somete a una única reacción de PCR que contiene todos los pares de primers, amplificando simultáneamente decenas a cientos de loci en un solo tubo. Es requerido realizar un balanceo de la redacción, ajustando las concentraciones relativas de cada par de primers para evitar que los amplicones más eficientes agoten los reactivos, un fenómeno conocido como competencia de amplificación (amplicon dropout de los loci menos eficientes).
+3. Adición de barcodes: Mediante una segunda ronda de PCR (con primers de fusión) o mediante ligación posterior, se añaden los índices/barcodes de muestra y los adaptadores de secuenciación. Secuenciación: La biblioteca resultante se secuencia en plataformas Illumina, típicamente en modo paired-end, dado que los amplicones suelen tener tamaños conocidos y relativamente uniformes, lo que facilita el ensamblaje y la llamada de variantes en las regiones dirigidas.
+4. Multiplex PCR es ampliamente usado en paneles de genotipado de baja a media densidad (por ejemplo, paneles de identificación de variedades o control de pedigrí), en estudios donde ya existe un conjunto conocido de SNPs o genes candidatos de interés, y en contextos donde el bajo costo por muestra y la rapidez son más importantes que la cobertura genómica amplia. Su principal limitación es el número de loci que pueden multiplexarse simultáneamente sin generar interferencia entre primers (usualmente cientos, no miles), lo que la hace menos adecuada para estudios de genómica poblacional a gran escala en comparación con ddRADseq.
+
+## Target Enrichment
+
+Target Enrichment (captura de secuencias dirigidas) es una estrategia de reducción de la complejidad genómica basada en hibridación selectiva de fragmentos de ADN mediante sondas (probes/baits) diseñadas específicamente para regiones de interés, permitiendo enriquecer miles de loci simultáneamente con mayor especificidad que Multiplex PCR y mayor flexibilidad de diseño que los métodos basados en enzimas de restricción. Su principio central es la hibridación en solución (o en array) entre sondas biotiniladas complementarias a las regiones objetivo y los fragmentos genómicos de la biblioteca, seguida de la captura física de los híbridos mediante beads magnéticas de estreptavidina.
+
+El protocolo original consta de los siguientes pasos: 
+
+1. Preparación de la biblioteca genómica: El ADN genómico de cada muestra se fragmenta (mecánicamente por sonicación o enzimáticamente) y se prepara una biblioteca estándar de secuenciación, con ligación de adaptadores y barcodes por muestra, de manera similar a una biblioteca de WGS convencional.
+2. Diseño de sondas (baits): Se diseñan sondas de ADN o ARN biotiniladas, de aproximadamente 80–120 pb, complementarias a las regiones genómicas de interés (genes candidatos, exones, regiones conservadas o loci ortólogos entre especies).
+3. Hibridación en solución: Las bibliotecas genómicas de las muestras (a menudo ya multiplexadas) se hibridan en solución con el pool de sondas biotiniladas durante 16–24 horas, permitiendo que las sondas se unan específicamente a los fragmentos complementarios.
+4. Captura con beads magnéticas: Los híbridos sonda-fragmento se capturan utilizando beads magnéticas recubiertas de estreptavidina, que se unen a la biotina de las sondas; los fragmentos no unidos (regiones no objetivo) se lavan y se descartan.
+5. Amplificación por PCR: Los fragmentos capturados y enriquecidos se amplifican mediante PCR para generar suficiente material para la secuenciación.
+6. Secuenciación: La biblioteca enriquecida se secuencia en plataformas Illumina, típicamente en modo paired-end, alcanzando una cobertura de profundidad mucho mayor en las regiones objetivo comparado con una secuenciación de genoma completo sin enriquecer.
+   
+El uso extendido de Target Enrichment impulsó variantes orientadas a distintos objetivos de investigación. **Exome capture:** Enfocado exclusivamente en las regiones codificantes (exoma), ampliamente usado en estudios humanos y de especies modelo con anotaciones genómicas robustas. **Anchored hybrid enrichment (AHE):** Diseñado para estudios filogenéticos profundos, dirigido a regiones conservadas flanqueadas por regiones variables, útil para resolver relaciones entre especies muy divergentes. **Sequence capture for phylogenomics (por ejemplo, kits Angiosperms353):** Diseñado específicamente para capturar cientos de genes de copia única en plantas, permitiendo estudios filogenómicos comparables entre especies distantes.
+
+Target Enrichment: Es el método que más ha crecido en la última década, particularmente en filogenómica (por ejemplo, kits como Angiosperms353, o Hyb-Seq en general) y en estudios de genes candidatos bajo selección, porque permite obtener cobertura muy profunda y consistente en cientos o miles de genes específicos, comparable entre especies distantes, algo que RADseq no logra bien a escalas filogenéticas profundas por la degradación de sitios homólogos entre especies muy divergentes. También domina en aplicaciones clínicas humanas (paneles de genes de enfermedad, exoma completo) y en estudios evolutivos donde se necesita ortología clara entre especies. Su limitación sigue siendo el costo de diseño inicial de las sondas y que solo se captura lo que se decide capturar, sin posibilidad de descubrir variación fuera del panel diseñado.
+
+<p align="center">
+  <img width="597" height="878" alt="image" src="https://github.com/user-attachments/assets/226dfccf-74e0-4e9e-8a23-a224a137d7c8" />
+
+</p>
+
+<p align="center">
+<b>Figura 2.</b> Esquema del proceso de preparación de bibliotecas mediante Target Enrichment (Sequence Capture) para secuenciación Illumina. El ADN genómico es fragmentado, las regiones objetivo son capturadas mediante sondas biotiniladas y esferas de estreptavidina, posteriormente se realiza la reparación de extremos, la ligación de adaptadores (incluyendo un Unique Molecular Identifier, UMI) y la amplificación por PCR, durante la cual se incorporan los índices de muestra (sample indexes) para la multiplexación.
+</p>
+
+---
+
 # Un flujo de trabajo completo de ddRADseq
 
 ## Entorno computacional
