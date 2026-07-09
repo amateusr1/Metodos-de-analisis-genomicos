@@ -8,15 +8,15 @@
 
 La **Restriction-site Associated DNA Sequencing (RADseq)** es una familia de técnicas de secuenciación de representación reducida (*Reduced Representation Sequencing, RRS*) que permitieron obtener miles de SNPs distribuidos por todo el genoma de forma reproducible y a bajo costo (Baird et al., 2008). Su principio se basa en el corte del ADN genómico con enzimas de restricción, seguido de la secuenciación de los fragmentos adyacentes a los sitios de corte, generando un muestreo sistemático del genoma.
 
-La variante **ddRADseq** (*double digest* RADseq; Peterson et al., 2012) reemplaza la fragmentación mecánica del RADseq original (Baird et al., 2008) por una segunda enzima de restricción. Solo se secuencian los fragmentos delimitados por ambas enzimas que cumplen un rango de tamaño determinado, lo que aumenta la reproducibilidad entre muestras y reduce el costo. Esta variante es actualmente una de las más utilizadas en estudios de genómica de poblaciones.
-
 Las metodologías de RADseq resultaron ser especialmente útiles en organismos no modelo, donde no existe un genoma de referencia o el costo de un WGS resulta prohibitivo. Los marcadores RAD se implementaron inicialmente mediante microarrays y posteriormente se adaptaron para NGS (secuenciación de próxima generación). Por lo que existen varias adaptaciones diseñadas para resolver desafíos específicos de fragmentación y cobertura de datos.
+
+La variante **ddRADseq** (*double digest* RADseq; Peterson et al., 2012) reemplaza la fragmentación mecánica del RADseq original (Baird et al., 2008) por una segunda enzima de restricción. Solo se secuencian los fragmentos delimitados por ambas enzimas que cumplen un rango de tamaño determinado, lo que aumenta la reproducibilidad entre muestras y reduce el costo. Esta variante es actualmente una de las más utilizadas en estudios de genómica de poblaciones.
 
 En este módulo se simularon datos ddRADseq a partir de un fragmento del genoma de referencia de *Solanum lycopersicum* Micro-Tom (cromosoma 6, primeros 10 Mb; AP028940.1; GCF_036512215.1 SLM_r2.1), usando RADinitio. Las lecturas simuladas fueron procesadas con ipyrad para el ensamblaje de loci y la identificación de variantes. Finalmente, se estimaron estadísticas de diversidad genética —diversidad nucleotídica (π), heterocigosidad observada y diferenciación genética (F_ST) con VCFtools.
 
 ---
 
-# ¿Cómo funciona RADseq?
+## ¿Cómo funciona RADseq?
 
 Aunque existen diferentes variantes, todas comparten el mismo principio:
 
@@ -40,31 +40,29 @@ Aunque existen diferentes variantes, todas comparten el mismo principio:
 
 ---
 
-# ¿Por qué utilizar RADseq?
+## ¿Por qué utilizar RADseq?
 
-Las técnicas RADseq surgieron para resolver un problema común en genómica: secuenciar genomas completos de muchos individuos puede ser innecesario y muy costoso.
-
-En muchos estudios de genética de poblaciones, evolución o filogenómica, basta con analizar miles de marcadores distribuidos por todo el genoma para responder preguntas biológicas.
-
-RADseq permite obtener esos marcadores de manera eficiente y reproducible, multiplexar numerosos individuos en una misma corrida de secuenciación y reducir considerablemente el costo respecto al WGS.
+Las técnicas RADseq surgieron para resolver un problema común en genómica: secuenciar genomas completos de muchos individuos puede ser innecesario y muy costoso. En muchos estudios de genética de poblaciones, evolución o filogenómica, basta con analizar miles de marcadores distribuidos por todo el genoma para responder preguntas biológicas. RADseq permite obtener esos marcadores de manera eficiente y reproducible, multiplexar numerosos individuos en una misma corrida de secuenciación y reducir considerablemente el costo respecto al WGS.
 
 ---
 
-# Los métodos RADseq
+## Los métodos RADseq
 
-Desde la publicación del protocolo original en 2008, numerosos investigadores han desarrollado variantes que buscan simplificar el protocolo, disminuir costos o mejorar la reproducibilidad. Cada variante modifica alguna etapa del procedimiento, como el número de enzimas utilizadas, la forma de seleccionar los fragmentos o el método de preparación de bibliotecas.
+Desde la publicación del protocolo original (Baird et al., 2008), se han desarrollado numerosas variantes que buscan simplificar el protocolo, disminuir mejorar la reproducibilidad, ampliar la cobertura, o resolver algún desafio en especifico. Cada variante modifica alguna etapa del procedimiento, como el número de enzimas utilizadas, la forma de seleccionar los fragmentos o el método de preparación de bibliotecas.
+
+La elección del método depende del organismo de estudio, el presupuesto disponible, el tamaño del genoma y la pregunta biológica.
 
 | Método | Año | Descripción |
 |---------|:---:|-------------|
-| **RRL (Reduced Representation Libraries)** | 2006 | Primer método de representación reducida del genoma. Utiliza una enzima de restricción seguida de una selección directa de fragmentos por tamaño antes de la secuenciación. |
-| **RADseq** | 2008 | Introduce el uso de adaptadores específicos para sitios de restricción y una fragmentación mecánica (sonicación) del ADN para obtener miles de loci distribuidos por el genoma. |
-| **GBS (Genotyping-by-Sequencing)** | 2010 | Simplifica el protocolo de RADseq eliminando la sonicación y la selección física de tamaño, reduciendo costos y permitiendo el procesamiento de un gran número de muestras. |
-| **CRoPS (Complexity Reduction of Polymorphic Sequences)** | 2011 | Emplea dos enzimas de restricción para reducir la complejidad del genoma y generar bibliotecas dirigidas al descubrimiento de polimorfismos. |
-| **2bRAD** | 2011 | Utiliza enzimas de restricción tipo IIB, las cuales producen fragmentos de longitud uniforme (≈33–36 pb), simplificando el análisis bioinformático. |
-| **ddRADseq (Double Digest RADseq)** | 2012 | Sustituye la fragmentación mecánica por una segunda enzima de restricción, aumentando la reproducibilidad y permitiendo controlar el número de loci mediante la selección de tamaño. |
-| **MSG (Multiplexed Shotgun Genotyping)** | 2012 | Diseñado para el genotipado masivo mediante multiplexación, optimizando la construcción de mapas genéticos y estudios de genética de poblaciones. |
-| **SBG (Sequence-Based Genotyping)** | 2012 | Combina enzimas de corte frecuente y raro para seleccionar un subconjunto específico de loci, disminuyendo la complejidad del genoma de forma controlada. |
-| **ezRAD** | 2013 | Adapta RADseq para utilizar kits comerciales estándar de preparación de bibliotecas Illumina, facilitando su implementación en organismos no modelo. |
+| **RRL (Reduced Representation Libraries)** | Van Tassell et al. (2008) | Es el primer método formal de representación reducida. Se utiliza una sola enzima de restricción de corte poco frecuente (p. ej., BglII , EcoRI ) para digerir el ADN genómico. Los fragmentos resultantes se separan por tamaño mediante electroforesis y se selecciona una fracción específica antes de construir la biblioteca de secuenciación. Solo esa fracción de tamaño seleccionada es secuenciada. Cayo en desuso puesto que la selección de tamaño por gel es un paso manual, laborioso y con baja reproducibilidad entre experimentos. Solo usa una enzima, lo que limita el control sobre el número de loci obtenidos. |
+| **RADseq** | Baird et al. (2008) | Es el protocolo fundamental de la familia RADseq. El ADN genómico se digiere con una enzima de restricción de corte raro (p. ej., SbfI ). A los fragmentos resultantes se les ligan adaptadores específicos con secuencias índice (códigos de barras) para multiplexar muestras. Luego el ADN es fragmentado mecánicamente por sonicación a un tamaño uniforme, y solo los fragmentos que contienen el sitio de restricción (con el adaptador ligado) son capturados y secuenciados. Esto genera lecturas "tipo P1" que comienzan exactamente en el sitio de restricción. La principal limitación radica en que la sonicación introduce variabilidad y los fragmentos P2 (el extremo opuesto) tienen profundidad de cobertura variable. Requiere más pasos de laboratorio que variantes posteriores. |
+| **GBS (Genotyping-by-Sequencing)** | Elshire et al. (2011) | Simplifica radicalmente el protocolo RADseq. Usa una sola enzima de restricción sensible a la metilación (típicamente ApeKI o PstI ) que corta preferentemente en regiones de baja metilación, es decir, regiones génicas activas. Elimina completamente la sonicación y la selección física de tamaño: la PCR favorece naturalmente los fragmentos más cortos, reduciendo la complejidad del genoma sin pasos adicionales. Los adaptadores están ligados directamente a los extremos de restricción. Es el método preferido cuando se necesita genotipar cientos o millas de individuos a bajo costo. Los loci obtenidos varían más entre muestras que en ddRADseq y no es ideal para organismos con genomas muy grandes o con alto contenido de secuencias repetitivas. |
+| **CRoPS (Complexity Reduction of Polymorphic Sequences)** | Van Orsouw et al. (2007) | Uno de los primeros enfoques de doble digestión. Utiliza dos enzimas de restricción —una de corte rara y una de corte frecuente— para reducir la complejidad del genoma de forma más controlada que GBS. Fue desarrollado originalmente para la plataforma de secuenciación 454 (pirosecuenciación), aunque luego se adaptó a Illumina. Solo se secuencian los fragmentos delimitados por ambas enzimas. Ha sido en gran medida reemplazado por ddRADseq. |
+| **2bRAD** | Wang et al. (2012) | Utiliza enzimas de restricción tipo IIB (p. ej., BsaXI , BcgI ), que tienen la propiedad única de cortar a una distancia fija a ambos lados de su sitio de reconocimiento. Esto genera fragmentos de longitud absolutamente uniforme (~33–36 pb), independientemente del genoma estudiado. Los fragmentos son ligados a adaptadores y secuenciados directamente. Ha sido frecuentemente usada en genómica de poblaciones en organismos marinos y acuáticos (corales, ostras, peces), donde la uniformidad de los fragmentos simplifica el análisis bioinformático. Pero tambien, las lecturas muy cortas (33–36 pb) limitan la capacidad de mapeo único en genomas con alta proporción de secuencias repetitivas. La cobertura por locus puede ser más baja que en otros métodos.  |
+| **ddRADseq (Double Digest RADseq)** | Peterson et al. (2012) | Es actualmente la variante más utilizada en genómica de poblaciones. Sustituye la sonicación del RADseq original por una segunda enzima de restricción de corte frecuente (p. ej., EcoRI + MseI, o SbfI + MspI). Solo se secuencian los fragmentos delimitados en un extremo por la enzima rara y en el otro por la enzima frecuente, dentro de un rango de tamaño mediante electroforesis seleccionada en gel o cromatografía. Esto permite controlar con precisión el número de loci obtenidos y mejorar enormemente la reproducibilidad entre experimentos y laboratorios. Requiere optimización de la combinación de enzimas según el tamaño y el contenido de GC del genoma. |
+| **MSG (Multiplexed Shotgun Genotyping)** | Andolfatto et al. (2011) | Diseñado originalmente para la construcción de mapas genéticos y estudios de genética de poblaciones con multiplexación masiva. Utiliza una enzima de restricción y simplifica varios pasos del protocolo original, permitiendo procesar un número muy elevado de individuos simultáneamente mediante indexación dual. Su nombre refleja el enfoque de "shotgun" (escopeta): secuencia una fracción aleatoria del genoma en lugar de loci específicos. Es utilizado para mapeo genético de alta densidad, genotipado masivo en Drosophila y otros organismos modelo, estudios de selección artificial y de asociación genoma-fenotipo (GWAS). |
+| **SBG (Sequence-Based Genotyping)** | Truong et al. (2012) | Combina una enzima de corte raro y una de corte frecuente para seleccionar un subconjunto específico y reducido de loci distribuidos por el genoma. El diseño busca un equilibrio entre reducción de complejidad y representación uniforme del genoma, con mayor control sobre el número final de loci que GBS pero menor que ddRADseq. Menos flexible que ddRADseq en la selección del número de loci. Su uso está más concentrado en el ámbito del mejoramiento que en la genómica evolutiva. |
+| **ezRAD** | Toonen et al. (2013) | Fue diseñado específicamente para facilitar la implementación de RADseq en organismos no modelo sin acceso a equipamiento especializado. Utiliza una o dos enzimas de restricción de corte frecuente (p. ej., DpnII , MboI ), pero en lugar de adaptadores RAD especializados, emplea kits comerciales estándar de preparación de bibliotecas Illumina (p. ej., TruSeq). Los fragmentos de restricción de menor tamaño son secuenciados directamente sin selección física adicional. La ausencia de selección de tamaño y el uso de enzimas de corte frecuentes puede generar un número muy elevado de lugares con cobertura desigual. Menor reproducibilidad entre experimentos que ddRADseq. |
 
 ---
 
