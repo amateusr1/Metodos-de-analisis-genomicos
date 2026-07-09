@@ -72,7 +72,9 @@ La elección del método depende del organismo de estudio, el presupuesto dispon
 
 GBS fue desarrollado como una alternativa radicalmente simplificada a RADseq, diseñada para hacer accesible el genotipado masivo de SNPs en plantas de cultivo con genomas grandes y alta diversidad. Su principio central es la reducción de la complejidad del genoma mediante digestión con enzimas de restricción sensibles a la metilación del ADN, aprovechando el hecho de que las regiones génicas activas (eucromatina) están menos metiladas que las regiones heterocromáticas y repetitivas.
 
-El protocolo original consta de los siguientes pasos: Digestión enzimática: El ADN genómico de cada muestra es digerido con una enzima de restricción sensible a la metilación. Las enzimas más utilizadas son:
+El protocolo original consta de los siguientes pasos: 
+
+1. Digestión enzimática: El ADN genómico de cada muestra es digerido con una enzima de restricción sensible a la metilación. Las enzimas más utilizadas son:
 
 | Enzima | Sitio de reconocimiento | Características |
 |---------|-------------------------|-----------------|
@@ -82,17 +84,49 @@ El protocolo original consta de los siguientes pasos: Digestión enzimática: El
 | **HindIII** | A/AGCTT | Alternativa para distintos diseños experimentales. |
 | **MseI** | T/TAA | Se emplea principalmente en protocolos de doble digestión. |
 
-Ligación de adaptadores: A los extremos de restricción generados se ligan dos tipos de adaptadores:
+2. Ligación de adaptadores: A los extremos de restricción generados se ligan dos tipos de adaptadores:
 
 Adaptador común (Y-adapter): ligado al extremo de corte frecuente, impide la amplificación de fragmentos con dos adaptadores comunes.
 Adaptador con barcode: contiene una secuencia índice única por muestra (4–8 pb), lo que permite multiplexar múltiples muestras en una sola carrera de secuenciación.
 
-Combinación de muestras y limpieza: Las muestras se combinan (pool) y se purifica el ADN para eliminar fragmentos muy pequeños y reactivos.
-Amplificación por PCR: Se amplifica la biblioteca con primers universales. A diferencia de ddRADseq, no se realiza selección de tamaño por gel o cromatografía. La PCR favorece naturalmente los fragmentos más cortos, reduciendo la complejidad del genoma sin pasos adicionales. Los fragmentos más largos amplifican con menor eficiencia y están subrepresentados en la biblioteca final. Los fragmentos cortos (<600 pb) amplifican más eficientemente, actuando como un filtro implícito de tamaño.
+3. Combinación de muestras y limpieza: Las muestras se combinan (pool) y se purifica el ADN para eliminar fragmentos muy pequeños y reactivos.
+   
+4. Amplificación por PCR: Se amplifica la biblioteca con primers universales. A diferencia de ddRADseq, no se realiza selección de tamaño por gel o cromatografía. La PCR favorece naturalmente los fragmentos más cortos, reduciendo la complejidad del genoma sin pasos adicionales. Los fragmentos más largos amplifican con menor eficiencia y están subrepresentados en la biblioteca final. Los fragmentos cortos (<600 pb) amplifican más eficientemente, actuando como un filtro implícito de tamaño.
 
-Secuenciación: La biblioteca se secuencia en plataformas Illumina (típicamente en modo single-end, aunque el paired-end también se usa). Las lecturas comienzan exactamente en el sitio de restricción, lo que facilita su identificación y el proceso de demultiplexación. 
+5. Secuenciación: La biblioteca se secuencia en plataformas Illumina (típicamente en modo single-end, aunque el paired-end también se usa). Las lecturas comienzan exactamente en el sitio de restricción, lo que facilita su identificación y el proceso de demultiplexación. 
 
 El éxito de GBS impulsó el desarrollo de variantes que buscan resolver alguna de sus limitaciones. **2-enzyme GBS (2e-GBS)**: Usa dos enzimas para mejorar la reproducibilidad entre experimentos, acercándose al concepto de ddRADseq pero manteniendo la simplicidad del protocolo **GBS. nextRAD**: Utiliza primers de PCR con extensión en el extremo 3' que se alinean específicamente con el sitio de restricción, aumentando la especificidad del muestreo. **rapture (RAD capture)**: Combina GBS con captura por hibridación para enriquecer loci específicos de interés, integrando las ventajas de GBS y de los paneles de captura dirigida.
+
+## ddRADseq — Double Digest RADseq
+
+ddRADseq fue desarrollado como una alternativa más económica y flexible al RADseq original, eliminando la necesidad de fragmentación mecánica (sonicación) y sustituyéndola por una doble digestión enzimática combinada con selección de tamaño estricta. Su principio central es la reducción de la complejidad del genoma mediante el uso simultáneo de dos enzimas de restricción con frecuencias de corte distintas, lo que permite un control más preciso sobre la densidad de marcadores y el tamaño de la biblioteca final.
+
+El protocolo original consta de los siguientes pasos:
+
+1. Digestión enzimática doble: El ADN genómico de cada muestra es digerido simultáneamente con dos enzimas de restricción: una de corte raro (rare cutter) y una de corte frecuente (common cutter). Las combinaciones más utilizadas son:
+
+| Enzima | Sitio de reconocimiento | Características |
+|---------|--------------------------|-----------------|
+| **SbfI** | CCTGCA/GG | Enzima de corte raro (8 pb), genera pocos fragmentos, común en la combinación original de Peterson et al. (2012). |
+| **EcoRI** | G/AATTC | Enzima de corte raro alternativa, usada en combinación con enzimas de corte frecuente. |
+| **MspI** | C/CGG | Enzima de corte frecuente, sensible al contexto de metilación CpG. |
+| **MseI** | T/TAA | Enzima de corte frecuente (4 pb), genera un gran número de sitios de corte. |
+| **NlaIII** | CATG/C | Enzima de corte frecuente, utilizada en combinaciones alternativas según el genoma objetivo. |
+
+La combinación rara + frecuente asegura que los fragmentos generados provengan de regiones flanqueadas por un sitio raro en un extremo y un sitio frecuente en el otro, lo cual reduce drásticamente el número de loci muestreados en comparación con usar una sola enzima.
+
+2. Ligación de adaptadores: A cada tipo de extremo de corte se liga un adaptador específico:
+
+Adaptador P1: se liga al extremo generado por la enzima de corte raro; contiene el barcode único por muestra y el sitio de unión para la secuenciación.
+Adaptador P2: se liga al extremo generado por la enzima de corte frecuente; frecuentemente incluye un índice adicional, permitindo doble indexación (barcode + índice) para multiplexar muchas más muestras que en GBS.
+
+3. Combinación de muestras y selección de tamaño por gel: Las muestras se combinan (pool) y, a diferencia de GBS, se realiza una selección de tamaño física y precisa de los fragmentos, típicamente mediante electroforesis en gel de agarosa o sistemas automatizados (por ejemplo, Pippin Prep/BluePippin). Se selecciona una ventana estrecha de tamaño (por ejemplo 300–400 pb), lo cual es el paso clave que diferencia a ddRADseq de GBS: en lugar de dejar que la PCR filtre implícitamente por tamaño, aquí el tamaño se controla directamente, mejorando la reproducibilidad entre librerías y experimentos.
+
+4. Amplificación por PCR: Se amplifica la biblioteca ya seleccionada por tamaño con primers universales. Como el rango de tamaños ya es angosto y controlado, la PCR introduce mucho menos sesgo diferencial entre fragmentos largos y cortos, comparado con GBS.
+   
+5. Secuenciación: La biblioteca se secuencia en plataformas Illumina, generalmente en modo paired-end, lo cual permite recuperar información de ambos extremos del fragmento (útil para ensamblar loci más largos y mejorar la llamada de variantes). Las lecturas comienzan en los sitios de restricción de ambas enzimas, facilitando la identificación de loci homólogos entre muestras.
+   
+El uso extendido de ddRADseq impulsó variantes y protocolos derivados que buscan resolver algunas de sus limitaciones. **3RAD:** Añade una tercera enzima de restricción y usa adaptadores con sitios de reconocimiento internos, lo que reduce la formación de dímeros de adaptador y mejora la eficiencia de la ligación, un problema común en ddRADseq estándar. **ezRAD:** Simplifica el protocolo utilizando enzimas de restricción comunes en kits de preparación de librerías estándar (sin necesidad de adaptadores personalizados), sacrificando algo de control sobre la reducción de complejidad a cambio de simplicidad de laboratorio. **BestRAD:** Incorpora biotina en los adaptadores, permitiendo la captura de fragmentos con beads magnéticas; es especialmente útil para muestras de baja calidad o de fuentes no invasivas (ej. ADN ambiental o de heces).
 
 ---
 
