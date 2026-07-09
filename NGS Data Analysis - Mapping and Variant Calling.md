@@ -138,7 +138,20 @@ Durante las etapas posteriores del procesamiento de datos, el campo FLAG constit
 Un alineamiento de alta calidad constituye por tanto el requisito indispensable para el descubrimiento confiable de variantes.
 
 ---
+## Formato SAM/BAM:
 
+<p align="center">
+  <img width="616" height="328" alt="image" src="https://github.com/user-attachments/assets/186a9bd1-b829-4b6b-aa8e-3715c41aa6ee" />
+
+
+
+
+</p>
+
+<p align="center">
+<b>Figura 2.</b> Esquema general de la estrategia seed-and-extend utilizada por alineadores modernos como Bowtie2 y BWA-MEN. La estructura de datos corresponde al FM-index, construido a partir de la Transformada de Burrows-Wheeler (BWT), el cual permite localizar rápidamente las posiciones de cada semilla dentro del genoma de referencia. 
+  
+</p>
 
 
 ---
