@@ -97,11 +97,17 @@ Otra característica importante de esta etapa es la posibilidad de realizar **al
   
 </p>
 
-### 5. Evaluación del alineamiento:
+---
 
-Una vez finalizado el proceso de alineamiento, herramientas como Bowtie2 o BWA-MEM generan como salida un archivo en formato SAM (Sequence Alignment/Map). Cada registro del archivo corresponde a una lectura alineada e incluye información calculada directamente por el alineador, como la posición de mapeo, la calidad del alineamiento (MAPQ), la cadena CIGAR, que describe cómo se alineó la lectura respecto al genoma de referencia, y el campo FLAG, que codifica mediante representación binaria el estado y las características del alineamiento. Posteriormente, el archivo SAM suele convertirse al formato binario BAM mediante herramientas como SAMtools, lo que permite reducir el espacio de almacenamiento y optimizar las operaciones de ordenamiento, indexación y análisis posteriores.
+## 5. Evaluación del alineamiento y Formatos SAM/BAM:
 
-#### **Mapping Quality Score (MAPQ)** 
+Una vez finalizado el proceso de alineamiento, herramientas como Bowtie2 o BWA-MEM generan como salida un archivo en formato SAM (Sequence Alignment/Map). Cada registro del archivo corresponde a una lectura alineada e incluye información calculada directamente por el alineador, como la posición de mapeo, la calidad del alineamiento (MAPQ), la cadena CIGAR, que describe cómo se alineó la lectura respecto al genoma de referencia, y el campo FLAG, que codifica mediante representación binaria el estado y las características del alineamiento. 
+
+Posteriormente, el archivo SAM suele convertirse al formato binario BAM mediante herramientas como SAMtools, lo que permite reducir el espacio de almacenamiento y optimizar las operaciones de ordenamiento, indexación y análisis posteriores.
+
+En la siguiente sección se analizan en detalle las principales métricas de evaluación del alineamiento (MAPQ, CIGAR y FLAG), así como la estructura y utilidad de los formatos SAM y BAM.
+
+### **Mapping Quality Score (MAPQ)** 
 
 El alineamiento obtenido es evaluado mediante un sistema de puntuación que considera la longitud del alineamiento, el número de coincidencias, las penalizaciones por indels y mismatches, así como la existencia de posibles alineamientos alternativos en otras regiones del genoma. Con esta información, el programa selecciona el mejor alineamiento para cada lectura y calcula posteriormente el **Mapping Quality Score (MAPQ)**, que representa la confianza estadística de que la lectura ha sido ubicada en la posición correcta del genoma de referencia.
 
@@ -111,7 +117,7 @@ El MAPQ se expresa mediante una escala Phred, en la que valores más altos indic
 
 Durante el llamado de variantes, el valor de MAPQ constituye uno de los principales criterios para evaluar la confiabilidad de las lecturas. Generalmente, las lecturas con valores bajos de MAPQ son descartadas o reciben un menor peso en el análisis, ya que presentan una mayor probabilidad de estar alineadas incorrectamente y, por lo tanto, de generar falsos positivos en la identificación de SNPs e inserciones o deleciones (indels).
 
-#### **La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)**
+### **La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)**
 
 **La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)** es otro de los campos importantes del formato SAM/BAM, ya que describe de manera compacta cómo una lectura se alinea con respecto al genoma de referencia. Esta cadena resume todas las operaciones necesarias para representar el alineamiento, indicando las coincidencias, discrepancias, inserciones, deleciones y otras modificaciones presentes entre la lectura y la secuencia de referencia. Gracias a esta información, es posible reconstruir el alineamiento sin necesidad de comparar nuevamente la lectura con el genoma.
 
@@ -121,7 +127,7 @@ Asimismo, la operación N indica una región omitida del genoma, utilizada princ
 
 Por ejemplo, una cadena 76M indica que los 76 nucleótidos de la lectura fueron alineados de forma continua respecto al genoma de referencia. Una cadena 35M2I39M significa que después de los primeros 35 nucleótidos alineados existe una inserción de dos nucleótidos en la lectura, seguida por otros 39 nucleótidos alineados. Por su parte, una cadena 20S56M indica que los primeros 20 nucleótidos fueron recortados mediante soft clipping, mientras que los 56 nucleótidos restantes participaron en el alineamiento. Estas operaciones permiten representar de forma precisa eventos biológicos como inserciones y deleciones, además de corregir problemas derivados de regiones de baja calidad o adaptadores residuales presentes en las lecturas.
 
-#### **El campo FLAG**
+### **El campo FLAG**
 
 **El campo FLAG** es un valor numérico presente en cada registro del archivo SAM/BAM que almacena información sobre el estado y las características del alineamiento de una lectura. A diferencia de otros campos, el FLAG no representa un único atributo, sino que utiliza una codificación binaria, en la cual cada bit indica una propiedad específica de la lectura. De esta manera, un único número puede contener simultáneamente múltiples características del alineamiento.
 
