@@ -66,7 +66,7 @@ La elección del método depende del organismo de estudio, el presupuesto dispon
 
 ---
 
-## GBS y ddRADseq: dos estrategias para un mismo objetivo
+# GBS y ddRADseq: dos estrategias para un mismo objetivo
 
 ## GBS — Genotyping-by-Sequencing
 
@@ -130,11 +130,11 @@ El uso extendido de ddRADseq impulsó variantes y protocolos derivados que busca
 
 ---
 
-# Métodos
+# Un flujo de trabajo completo de ddRADseq
 
 ## Entorno computacional
 
-Todos los análisis se realizaron en Ubuntu 24 bajo WSL2 (Windows Subsystem for Linux) en un equipo local con procesador Intel Core i5 y 8 GB de RAM, usando el gestor de paquetes conda (Miniforge3).
+Todos los análisis se realizaron en Ubuntu bajo WSL2 (Windows Subsystem for Linux) localmente, usando el gestor de paquetes conda (Miniforge3).
 
 ```bash
 # Creación del ambiente conda
@@ -146,18 +146,6 @@ conda install -c bioconda -c conda-forge ipyrad samtools vcftools bbtools -y
 pip install setuptools==69.0.0
 pip install radinitio
 ```
-
-| Herramienta | Versión |
-|-------------|---------|
-| RADinitio | 1.2.3 |
-| msprime | 1.4.0 |
-| ipyrad | 0.9.108 |
-| BBtools | — |
-| VCFtools | 0.1.17 |
-| samtools | — |
-| Python | 3.10 |
-| Sistema operativo | Ubuntu 24 (WSL2) |
-
 ---
 
 ## 1. Obtención y preparación del genoma de referencia
