@@ -20,7 +20,7 @@ Actualmente, plataformas de secuenciación como Illumina, Oxford Nanopore Techno
 
 Cada una de estas etapas reduce progresivamente la incertidumbre asociada a los datos experimentales, permitiendo identificar con mayor precisión las diferencias genéticas reales entre individuos.
 
-En este módulo se describen los fundamentos teóricos del alineamiento de lecturas y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS a partir de datos de Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.
+En este módulo se describen los fundamentos teóricos del alineamiento de lecturas y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS a partir de datos de *Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.*
 
 ---
 
@@ -28,41 +28,26 @@ En este módulo se describen los fundamentos teóricos del alineamiento de lectu
 
 El alineamiento de secuencias posee aplicaciones en prácticamente todas las áreas de la biología molecular y constituye uno de los problemas fundamentales de la bioinformática. Consiste en establecer la correspondencia óptima entre dos o más secuencias de ADN, ARN o proteínas con el propósito de identificar regiones conservadas y diferencias evolutivas. Desde el punto de vista computacional, el alineamiento busca maximizar la similitud entre secuencias permitiendo la aparición de sustituciones, inserciones y deleciones cuando estas representan mejor la historia evolutiva de las moléculas comparadas. 
 
-El alineamiento de millones de lecturas representa por tanto un problema computacional extremadamente complejo. Una secuenciación puede generar más de 500 millones de lecturas. Comparar cada una de ellas contra todas las posiciones posibles de un genoma de aproximadamente 900 Mb, como el de *Solanum lycopersicum*, requeriría un tiempo computacional prohibitivo si se utilizaran algoritmos clásicos de comparación exhaustiva.
+El alineamiento de millones de lecturas representa por tanto un problema computacional extremadamente complejo. Una secuenciación puede generar más de 500 millones de lecturas. Comparar cada una de ellas contra todas las posiciones posibles de un genoma de aproximadamente 900 Mb, como el de *Solanum lycopersicum*, requeriría un tiempo computacional prohibitivo si se utilizaran algoritmos clásicos de comparación exhaustiva. Por ello, los alineadores modernos emplean estructuras de datos comprimidas y algoritmos heurísticos que permiten acelerar considerablemente el proceso sin comprometer significativamente la precisión.
 
-
-
-
-Por ello, los alineadores modernos emplean estructuras de datos comprimidas y algoritmos heurísticos que permiten acelerar considerablemente el proceso sin comprometer significativamente la precisión.
-
-
-
-En experimentos de NGS, el alineamiento recibe el nombre específico de **read mapping**, ya que el objetivo consiste en localizar la posición más probable del genoma donde se originó cada lectura generada por el secuenciador.
-
-La correcta ubicación de las lecturas resulta indispensable para todas las etapas posteriores del análisis. Si una lectura es alineada en una posición incorrecta, cualquier diferencia observada respecto al genoma de referencia podría interpretarse erróneamente como una variante genética cuando en realidad corresponde a un error de alineamiento.
-
-Por esta razón, el alineamiento constituye el paso crítico sobre el cual depende la precisión del llamado de variantes.
-
+El objetivo del alineamiento **read mapping**, consiste en localizar la posición más probable del genoma donde se originó cada lectura generada por el secuenciador. La correcta ubicación de las lecturas resulta indispensable para todas las etapas posteriores del análisis. Si una lectura es alineada en una posición incorrecta, cualquier diferencia observada respecto al genoma de referencia podría interpretarse erróneamente como una variante genética cuando en realidad corresponde a un error de alineamiento. Por esta razón, el alineamiento constituye el paso crítico sobre cualquier estudio.
 
 ---
+# 4.5 Algoritmos modernos de alineamiento
 
-## 4.2.3 Desafíos computacionales
+Los alineadores actuales emplean una estrategia denominada **Seed-and-Extend**, diseñada para acelerar el proceso de búsqueda. En lugar de comparar la lectura completa contra todas las posiciones del genoma, el algoritmo divide inicialmente cada lectura en pequeños fragmentos llamados **semillas** (*seeds - k-mers*), generalmente de entre 20 y 30 nucleótidos. Cada una de estas semillas se busca rápidamente utilizando el FM-index. Una vez encontrada una coincidencia potencial, el algoritmo extiende el alineamiento hacia ambos extremos utilizando técnicas de programación dinámica. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
 
-El alineamiento de millones de lecturas representa un problema computacional extremadamente complejo.
+Este enfoque presenta múltiples ventajas:
 
-Un experimento típico de secuenciación puede generar más de 500 millones de lecturas. Comparar cada una de ellas contra todas las posiciones posibles de un genoma de aproximadamente 900 Mb, como el de *Solanum lycopersicum*, requeriría un tiempo computacional prohibitivo si se utilizaran algoritmos clásicos de comparación exhaustiva.
+- disminuye considerablemente el tiempo de ejecución;
+- reduce el consumo de memoria;
+- permite detectar pequeñas inserciones y deleciones;
+- mejora la precisión del alineamiento en regiones variables;
+- facilita el procesamiento de millones de lecturas en tiempos razonables.
 
-Además, los algoritmos deben considerar simultáneamente múltiples fuentes de variación, entre ellas:
+La estrategia Seed-and-Extend representa actualmente la base computacional de la mayoría de los alineadores modernos utilizados en genómica, incluyendo Bowtie2, BWA-MEM y otros algoritmos ampliamente empleados en proyectos de resecuenciación.
 
-- errores de secuenciación;
-- mutaciones reales;
-- inserciones;
-- deleciones;
-- regiones repetitivas;
-- duplicaciones génicas;
-- baja calidad de bases.
 
-Por ello, los alineadores modernos emplean estructuras de datos comprimidas y algoritmos heurísticos que permiten acelerar considerablemente el proceso sin comprometer significativamente la precisión.
 
 ---
 
