@@ -32,7 +32,17 @@ El alineamiento de millones de lecturas representa por tanto un problema computa
 
 El objetivo del alineamiento **read mapping**, consiste en localizar la posición más probable del genoma donde se originó cada lectura generada por el secuenciador. La correcta ubicación de las lecturas resulta indispensable para todas las etapas posteriores del análisis. Si una lectura es alineada en una posición incorrecta, cualquier diferencia observada respecto al genoma de referencia podría interpretarse erróneamente como una variante genética cuando en realidad corresponde a un error de alineamiento. Por esta razón, el alineamiento constituye el paso crítico sobre cualquier estudio.
 
-<img width="782" height="455" alt="image" src="https://github.com/user-attachments/assets/8cd124c2-0071-48d7-b2a6-349354d9e67a" />
+<p align="center">
+ <img width="782" height="455" alt="image" src="https://github.com/user-attachments/assets/8cd124c2-0071-48d7-b2a6-349354d9e67a" />
+
+</p>
+
+</p>
+
+<p align="center">
+<b>Figura 1.</b> Alineamiento de lecturas (reads) de secuenciación frente a una secuencia de referencia. La superposición de múltiples lecturas genera una cobertura que permite identificar variantes mediante la comparación de las bases presentes en cada posición del genoma. Este procedimiento constituye la base del variant calling en análisis de secuenciación de nueva generación (NGS).
+  
+</p>
 
 ---
 # Algoritmos modernos de alineamiento
