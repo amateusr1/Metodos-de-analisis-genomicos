@@ -68,8 +68,6 @@ La elección del método depende del organismo de estudio, el presupuesto dispon
 
 ## GBS y ddRADseq: dos estrategias para un mismo objetivo
 
----
-
 ## GBS — Genotyping-by-Sequencing
 
 GBS fue desarrollado como una alternativa radicalmente simplificada a RADseq, diseñada para hacer accesible el genotipado masivo de SNPs en plantas de cultivo con genomas grandes y alta diversidad. Su principio central es la reducción de la complejidad del genoma mediante digestión con enzimas de restricción sensibles a la metilación del ADN, aprovechando el hecho de que las regiones génicas activas (eucromatina) están menos metiladas que las regiones heterocromáticas y repetitivas.
