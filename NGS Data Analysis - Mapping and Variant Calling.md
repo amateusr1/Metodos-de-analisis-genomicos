@@ -1,24 +1,14 @@
 # NGS Data Analysis - Mapping and Variant Calling
 
-> Una guía sobre los fundamentos del mapeo de lecturas y la llamada de variantes y un flujo de trabajo completo con datos de secuenciación de nueva generación (Next Generation Sequencing, NGS)
-
-# Introducción
-
-El análisis de datos de secuenciación de nueva generación (Next Generation Sequencing, NGS) constituye uno de los pilares de la genómica moderna. El enorme volumen de información generado por estas tecnologías requiere algoritmos computacionales especializados capaces de transformar millones de lecturas cortas en información biológicamente interpretable. Entre las etapas más importantes de este proceso se encuentran el alineamiento de lecturas contra un genoma de referencia y el llamado de variantes. En un flujo de análisis típico de datos NGS, las lecturas obtenidas por el secuenciador son sometidas inicialmente a un control de calidad para eliminar adaptadores, secuencias contaminantes y bases de baja calidad. Posteriormente, las lecturas filtradas se alinean contra un genoma de referencia mediante algoritmos de mapeo, generando archivos de alineamiento que posteriormente sirven como entrada para herramientas de llamdo de variantes. Finalmente, las variantes detectadas son filtradas y anotadas antes de ser utilizadas en estudios de diversidad genética, genética de poblaciones, evolución o mejoramiento genético.
-
-En este módulo se describen los fundamentos teóricos del alineamiento de lecturas y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS, que comprende la limpieza de lecturas, el alineamiento contra el genoma de referencia de Solanum lycopersicum, el llamado de variantes y el cálculo de estadísticas de diversidad genética a partir de datos de Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.
+> Una guía sobre los fundamentos del mapeo de lecturas y la llamada de variantes y un flujo de trabajo completo con datos de secuenciación de nueva generación (Next Generation Sequencing, NGS).
 
 ---
 
-# 4.1 Introducción al análisis de datos de secuenciación de nueva generación (NGS)
+# Introducción
 
-Las tecnologías de secuenciación de nueva generación (NGS) revolucionaron la biología molecular al permitir la obtención simultánea de millones de fragmentos de ADN en una única corrida de secuenciación. A diferencia del método clásico de Sanger, que produce una única secuencia por reacción, las plataformas NGS generan millones o incluso miles de millones de lecturas (reads), reduciendo considerablemente el costo por base secuenciada y aumentando la velocidad de adquisición de datos.
+Las tecnologías de secuenciación de nueva generación (NGS) revolucionaron la biología molecular al permitir la obtención simultánea de millones de fragmentos de ADN en una única corrida de secuenciación. A diferencia del método clásico de Sanger, que produce una única secuencia por reacción, las plataformas NGS generan millones o incluso miles de millones de lecturas (reads), reduciendo considerablemente el costo por base secuenciada y aumentando la velocidad de adquisición de datos. El enorme volumen de información generado por estas tecnologías requiere algoritmos computacionales especializados capaces de transformar millones de lecturas cortas en información biológicamente interpretable. 
 
-Actualmente, plataformas como Illumina, Oxford Nanopore Technologies y Pacific Biosciences permiten abordar preguntas biológicas relacionadas con la identificación de variantes genómicas, ensamblaje de genomas, análisis transcriptómicos, estudios metagenómicos y caracterización epigenética.
-
-Sin embargo, el resultado directo del proceso de secuenciación no corresponde al genoma completo del organismo, sino a millones de pequeñas secuencias independientes denominadas **lecturas** (*reads*), cuya longitud puede variar desde aproximadamente 50 hasta varios miles de nucleótidos dependiendo de la tecnología utilizada.
-
-Estas lecturas representan únicamente fragmentos del ADN original, por lo que deben ser procesadas computacionalmente para reconstruir la información biológica del genoma. El análisis bioinformático transforma estos datos crudos en información útil mediante una serie de etapas secuenciales que incluyen:
+Actualmente, plataformas de secuenciación como Illumina, Oxford Nanopore Technologies y Pacific Biosciences permiten la optención de millones de pequeñas secuencias independientes denominadas **lecturas** (*reads*), cuya longitud puede variar desde aproximadamente 50 hasta varios miles de nucleótidos dependiendo de la tecnología utilizada. Estas lecturas representan únicamente fragmentos del ADN original, por lo que deben ser procesadas computacionalmente para reconstruir la información biológica del genoma. El análisis bioinformático transforma estos datos crudos en información útil mediante una serie de etapas secuenciales que incluyen:
 
 1. Control de calidad de las lecturas.
 2. Eliminación de adaptadores y secuencias de baja calidad.
@@ -30,15 +20,22 @@ Estas lecturas representan únicamente fragmentos del ADN original, por lo que d
 
 Cada una de estas etapas reduce progresivamente la incertidumbre asociada a los datos experimentales, permitiendo identificar con mayor precisión las diferencias genéticas reales entre individuos.
 
+En este módulo se describen los fundamentos teóricos del alineamiento de lecturas y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS a partir de datos de Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.
+
 ---
 
 # 4.2 Alineamiento de secuencias
 
-## 4.2.1 Concepto
+El alineamiento de secuencias posee aplicaciones en prácticamente todas las áreas de la biología molecular y constituye uno de los problemas fundamentales de la bioinformática. Consiste en establecer la correspondencia óptima entre dos o más secuencias de ADN, ARN o proteínas con el propósito de identificar regiones conservadas y diferencias evolutivas. Desde el punto de vista computacional, el alineamiento busca maximizar la similitud entre secuencias permitiendo la aparición de sustituciones, inserciones y deleciones cuando estas representan mejor la historia evolutiva de las moléculas comparadas. 
 
-El alineamiento de secuencias constituye uno de los problemas fundamentales de la bioinformática. Consiste en establecer la correspondencia óptima entre dos o más secuencias de ADN, ARN o proteínas con el propósito de identificar regiones conservadas y diferencias evolutivas.
+El alineamiento de millones de lecturas representa por tanto un problema computacional extremadamente complejo. Una secuenciación puede generar más de 500 millones de lecturas. Comparar cada una de ellas contra todas las posiciones posibles de un genoma de aproximadamente 900 Mb, como el de *Solanum lycopersicum*, requeriría un tiempo computacional prohibitivo si se utilizaran algoritmos clásicos de comparación exhaustiva.
 
-Desde el punto de vista computacional, el alineamiento busca maximizar la similitud entre secuencias permitiendo la aparición de sustituciones, inserciones y deleciones cuando estas representan mejor la historia evolutiva de las moléculas comparadas.
+
+
+
+Por ello, los alineadores modernos emplean estructuras de datos comprimidas y algoritmos heurísticos que permiten acelerar considerablemente el proceso sin comprometer significativamente la precisión.
+
+
 
 En experimentos de NGS, el alineamiento recibe el nombre específico de **read mapping**, ya que el objetivo consiste en localizar la posición más probable del genoma donde se originó cada lectura generada por el secuenciador.
 
@@ -46,24 +43,6 @@ La correcta ubicación de las lecturas resulta indispensable para todas las etap
 
 Por esta razón, el alineamiento constituye el paso crítico sobre el cual depende la precisión del llamado de variantes.
 
----
-
-## 4.2.2 Importancia biológica
-
-El alineamiento de secuencias posee aplicaciones en prácticamente todas las áreas de la biología molecular.
-
-Entre sus principales aplicaciones destacan:
-
-- identificación de SNPs e indels;
-- estudios filogenéticos;
-- genética de poblaciones;
-- análisis de expresión génica mediante RNA-Seq;
-- identificación de mutaciones asociadas a enfermedades;
-- estudios de adaptación evolutiva;
-- análisis de diversidad genética;
-- programas de mejoramiento vegetal y animal.
-
-En proyectos de resecuenciación genómica, el alineamiento permite comparar directamente el ADN de un individuo con un genoma de referencia para detectar diferencias nucleotídicas responsables de variaciones fenotípicas.
 
 ---
 
@@ -107,6 +86,8 @@ Cuando existe un genoma de referencia de alta calidad, el alineamiento permite o
 No obstante, algunas regiones presentan secuencias altamente repetitivas o duplicadas, dificultando la asignación única de determinadas lecturas. En estos casos, los algoritmos asignan una probabilidad de confianza denominada **Mapping Quality (MAPQ)**, la cual refleja la certeza estadística de la posición seleccionada.
 
 Un alineamiento de alta calidad constituye el requisito indispensable para el descubrimiento confiable de variantes.
+
+
 
 ---
 
@@ -335,6 +316,9 @@ En estos casos suelen emplearse herramientas como STAR, Minimap2 o BWA-MEM.
 | BWA-MEM | ADN genómico | Sí | Sí | No | Sí |
 | STAR | RNA-Seq | Sí | Sí | Sí | No |
 | Minimap2 | Long Reads | Sí | Sí | Sí | Sí |
+
+
+
 
 ---
 
