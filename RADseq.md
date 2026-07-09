@@ -66,6 +66,38 @@ La elección del método depende del organismo de estudio, el presupuesto dispon
 
 ---
 
+## GBS y ddRADseq: dos estrategias para un mismo objetivo
+
+---
+
+## GBS — Genotyping-by-Sequencing
+
+GBS fue desarrollado como una alternativa radicalmente simplificada a RADseq, diseñada para hacer accesible el genotipado masivo de SNPs en plantas de cultivo con genomas grandes y alta diversidad. Su principio central es la reducción de la complejidad del genoma mediante digestión con enzimas de restricción sensibles a la metilación del ADN, aprovechando el hecho de que las regiones génicas activas (eucromatina) están menos metiladas que las regiones heterocromáticas y repetitivas.
+
+El protocolo original consta de los siguientes pasos: Digestión enzimática: El ADN genómico de cada muestra es digerido con una enzima de restricción sensible a la metilación. Las enzimas más utilizadas son:
+
+| Enzima | Sitio de reconocimiento | Características |
+|---------|-------------------------|-----------------|
+| **ApeKI** | G/CWCG | Enzima del protocolo original. Reconoce sitios poco metilados y dirige el muestreo hacia regiones génicas. |
+| **PstI** | CTGCA/G | Muy utilizada en gramíneas y otras plantas. |
+| **EcoRI** | G/AATTC | Utilizada según el tamaño y complejidad del genoma. |
+| **HindIII** | A/AGCTT | Alternativa para distintos diseños experimentales. |
+| **MseI** | T/TAA | Se emplea principalmente en protocolos de doble digestión. |
+
+Ligación de adaptadores: A los extremos de restricción generados se ligan dos tipos de adaptadores:
+
+Adaptador común (Y-adapter): ligado al extremo de corte frecuente, impide la amplificación de fragmentos con dos adaptadores comunes.
+Adaptador con barcode: contiene una secuencia índice única por muestra (4–8 pb), lo que permite multiplexar múltiples muestras en una sola carrera de secuenciación.
+
+Combinación de muestras y limpieza: Las muestras se combinan (pool) y se purifica el ADN para eliminar fragmentos muy pequeños y reactivos.
+Amplificación por PCR: Se amplifica la biblioteca con primers universales. A diferencia de ddRADseq, no se realiza selección de tamaño por gel o cromatografía. La PCR favorece naturalmente los fragmentos más cortos, reduciendo la complejidad del genoma sin pasos adicionales. Los fragmentos más largos amplifican con menor eficiencia y están subrepresentados en la biblioteca final. Los fragmentos cortos (<600 pb) amplifican más eficientemente, actuando como un filtro implícito de tamaño.
+
+Secuenciación: La biblioteca se secuencia en plataformas Illumina (típicamente en modo single-end, aunque el paired-end también se usa). Las lecturas comienzan exactamente en el sitio de restricción, lo que facilita su identificación y el proceso de demultiplexación. 
+
+El éxito de GBS impulsó el desarrollo de variantes que buscan resolver alguna de sus limitaciones. **2-enzyme GBS (2e-GBS)**: Usa dos enzimas para mejorar la reproducibilidad entre experimentos, acercándose al concepto de ddRADseq pero manteniendo la simplicidad del protocolo **GBS. nextRAD**: Utiliza primers de PCR con extensión en el extremo 3' que se alinean específicamente con el sitio de restricción, aumentando la especificidad del muestreo. **rapture (RAD capture)**: Combina GBS con captura por hibridación para enriquecer loci específicos de interés, integrando las ventajas de GBS y de los paneles de captura dirigida.
+
+---
+
 # Métodos
 
 ## Entorno computacional
