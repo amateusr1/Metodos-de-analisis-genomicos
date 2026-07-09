@@ -20,11 +20,11 @@ Actualmente, plataformas de secuenciación como Illumina, Oxford Nanopore Techno
 
 Cada una de estas etapas reduce progresivamente la incertidumbre asociada a los datos experimentales, permitiendo identificar con mayor precisión las diferencias genéticas reales entre individuos.
 
-En este módulo se describen los fundamentos teóricos del alineamiento de lecturas y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS a partir de datos de *Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.*
+En este módulo se describen los fundamentos teóricos del alineamiento de lecturas contra un genoma de referencia y del llamado de variantes en datos de secuenciación de nueva generación (NGS). Se abordan los principios biológicos, computacionales y estadísticos que sustentan estas etapas y se presenta un flujo de trabajo completo para el análisis de datos NGS a partir de datos de *Solanum pimpinellifolium, Solanum lycopersicum var. cerasiforme y Solanum lycopersicum var. lycopersicum.*
 
 ---
 
-# Alineamiento de secuencias
+# Alineamiento de lecturas contra un genoma de referencia (Reference-based alignment o Read mapping).
 
 El alineamiento de secuencias posee aplicaciones en prácticamente todas las áreas de la biología molecular y constituye uno de los problemas fundamentales de la bioinformática. Consiste en establecer la correspondencia óptima entre dos o más secuencias de ADN, ARN o proteínas con el propósito de identificar regiones conservadas y diferencias evolutivas. Desde el punto de vista computacional, el alineamiento busca maximizar la similitud entre secuencias permitiendo la aparición de sustituciones, inserciones y deleciones cuando estas representan mejor la historia evolutiva de las moléculas comparadas. 
 
@@ -35,6 +35,8 @@ El objetivo del alineamiento **read mapping**, consiste en localizar la posició
 ---
 # Algoritmos modernos de alineamiento
 
+El alineamiento contra referencia consiste en asignar cada lectura de ADN a la región del genoma donde probablemente fue originada. Durante este proceso, el alineador compara la secuencia de cada lectura con millones de posiciones posibles del genoma de referencia y calcula cuál de ellas representa el alineamiento más probable.
+
 ## Alineamiento de lecturas cortas
 
 Los alineadores actuales emplean una estrategia denominada **Seed-and-Extend**, diseñada para acelerar el proceso de búsqueda. En lugar de comparar la lectura completa contra todas las posiciones del genoma, el algoritmo divide inicialmente cada lectura en pequeños fragmentos llamados **semillas** (*seeds - k-mers*). Cada una de estas semillas se busca rápidamente utilizando el FM-index. Una vez encontrada una coincidencia potencial, el algoritmo extiende el alineamiento hacia ambos extremos utilizando técnicas de programación dinámica. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
@@ -43,135 +45,49 @@ La estrategia Seed-and-Extend representa actualmente la base computacional de la
 
 El funcionamiento interno de los principales alineadores de lecturas cortas incluye:
 
-# **1. Construcción del índice:** 
+### **1. Construcción del índice:** 
 
 Antes de iniciar el alineamiento, el genoma de referencia es transformado mediante la Burrows-Wheeler Transform y posteriormente indexado utilizando el FM-index. **La Transformada de Burrows-Wheeler (Burrows-Wheeler Transform, BWT)** constituye una transformación reversible que reorganiza los caracteres del genoma para agrupar regiones similares sin modificar la información original. Inicialmente fue desarrollada para algoritmos de compresión de datos, pero posteriormente se demostró que esta transformación permite realizar búsquedas extremadamente eficientes sobre secuencias biológicas. Sobre la BWT se construye el denominado **FM-index**, una estructura de datos que permite localizar rápidamente cualquier subsecuencia dentro del genoma sin necesidad de recorrerlo completamente. Gracias al FM-index, herramientas como Bowtie2 y BWA pueden localizar millones de lecturas utilizando únicamente unos pocos gigabytes de memoria RAM, incluso para genomas de gran tamaño. La combinación BWT–FM-index constituye actualmente el estándar para el alineamiento de lecturas cortas. Esta etapa solamente debe ejecutarse una vez para cada genoma.
 
-**2. Selección de semillas:** Cada lectura es dividida en pequeños fragmentos (seeds). Las semillas corresponden a pequeños kmers cuya longitud varia. Estas semillas son buscadas dentro del índice del genoma. El valor k, que corresponde a la longitud, expresada en número de nucleótidos, de las subsecuencias o k-mers utilizadas como semillas (seeds) durante el proceso de búsqueda. Es uno de los parámetros fundamentales en los algoritmos de alineamiento. En lugar de comparar una lectura completa contra todas las posiciones del genoma de referencia, el alineador la divide en pequeños fragmentos de longitud k. Cada uno de estos fragmentos se busca rápidamente en el índice del genoma mediante estructuras de datos como el FM-index, permitiendo identificar regiones candidatas donde posteriormente se realiza el alineamiento completo mediante la estrategia seed-and-extend.
+### **2. Selección de semillas:** 
+
+Cada lectura es dividida en pequeños fragmentos (seeds). Las semillas corresponden a pequeños kmers cuya longitud varia. Estas semillas son buscadas dentro del índice del genoma. El valor k, que corresponde a la longitud, expresada en número de nucleótidos, de las subsecuencias o k-mers utilizadas como semillas (seeds) durante el proceso de búsqueda. Es uno de los parámetros fundamentales en los algoritmos de alineamiento. En lugar de comparar una lectura completa contra todas las posiciones del genoma de referencia, el alineador la divide en pequeños fragmentos de longitud k. Cada uno de estos fragmentos se busca rápidamente en el índice del genoma mediante estructuras de datos como el FM-index, permitiendo identificar regiones candidatas donde posteriormente se realiza el alineamiento completo mediante la estrategia seed-and-extend.
 
 La elección del tamaño del k-mer representa un compromiso entre sensibilidad y velocidad del alineamiento: Valores pequeños de k generan un mayor número de coincidencias potenciales, incrementando la sensibilidad del algoritmo y permitiendo detectar variantes o errores de secuenciación. Sin embargo, también aumentan el tiempo de ejecución y la probabilidad de obtener alineamientos ambiguos, especialmente en regiones repetitivas. Valores grandes de k producen menos coincidencias, acelerando el proceso de alineamiento y reduciendo el número de falsos emparejamientos. No obstante, disminuyen la sensibilidad cuando las lecturas contienen errores o múltiples variantes respecto al genoma de referencia. Por esta razón, los alineadores no utilizan un único valor fijo de k, sino estrategias adaptativas que optimizan automáticamente la longitud y el número de semillas según las características de las lecturas y del genoma analizado.
 
----
+La principal diferencia entre ambos alineadores **(Bowtie2 y BWA-MEM)** radica en la selección de las semillas: Bowtie2 utiliza semillas de longitud fija, mientras que BWA-MEM emplea Maximal Exact Matches (MEMs), lo que generalmente mejora el rendimiento en lecturas más largas y regiones genómicas complejas. 
 
-### 3. Búsqueda rápida
+A diferencia de Bowtie2, que divide las lecturas en semillas (*seeds*) de longitud fija, **BWA-MEM** a diferencia de Bowtie2, inicia el proceso de alineamiento identificando las **Maximal Exact Matches (MEM)**, las coincidencias exactas de mayor longitud compartidas entre una lectura y el genoma de referencia. Una MEM corresponde al segmento continuo más largo que coincide exactamente entre ambas secuencias y que no puede extenderse ni hacia la izquierda ni hacia la derecha sin introducir una discrepancia.
 
-Cada seed es localizada mediante el FM-index.
+El algoritmo explora el índice del genoma, construido mediante la Transformada de Burrows-Wheeler (BWT) y el FM-index, para localizar estas coincidencias máximas. Una vez identificadas, las MEM se utilizan como puntos de anclaje (*anchors*) para iniciar el proceso de extensión del alineamiento. El uso de MEM presenta varias ventajas respecto al empleo de semillas de longitud fija. Al utilizar las coincidencias exactas más largas disponibles, el algoritmo reduce el número de alineamientos candidatos que deben evaluarse, disminuye la probabilidad de obtener alineamientos ambiguos en regiones repetitivas y mejora la precisión del mapeo, especialmente en lecturas de mayor longitud. Además, esta estrategia incrementa la eficiencia computacional al concentrar el esfuerzo de alineamiento únicamente en las regiones del genoma con mayor probabilidad de corresponder al origen de la lectura.
 
-En esta etapa el algoritmo identifica únicamente regiones candidatas donde podría encontrarse la lectura completa.
+Por estas razones, BWA-MEM se ha convertido en uno de los alineadores más utilizados para datos de secuenciación del genoma completo (Whole Genome Sequencing, WGS) y constituye el alineador recomendado por las **GATK Best Practices** para el análisis de variantes en organismos con un genoma de referencia de alta calidad.
 
-Esto reduce drásticamente el número de comparaciones necesarias. 
+### 3. Búsqueda rápida:
 
----
+Cada seed es localizada mediante el FM-index. En esta etapa el algoritmo identifica únicamente regiones candidatas donde podría encontrarse la lectura completa. Esto reduce drásticamente el número de comparaciones necesarias. 
 
-### 4. Extensión del alineamiento
+### 4. Extensión del alineamiento:
 
-Una vez encontrada una coincidencia potencial, Bowtie2 utiliza programación dinámica basada en Smith-Waterman para extender el alineamiento hacia ambos extremos. Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
+Una vez identificadas una o varias regiones candidatas mediante la búsqueda de semillas (*seeds*) en el índice del genoma, el alineador procede a la etapa de **extensión del alineamiento (*seed-and-extend*)**. Para ello, ambos alineadores emplean un algoritmo de programación dinámica inspirado en **Smith-Waterman**, diseñado para realizar alineamientos locales. A diferencia de una búsqueda basada únicamente en coincidencias exactas, este algoritmo calcula el alineamiento de mayor puntuación considerando diferentes eventos biológicos y tecnicos que pueden ocurrir durante la secuenciación o como consecuencia de la variación genética entre el individuo analizado y el genoma de referencia.
 
-Este enfoque presenta múltiples ventajas:
+El algoritmo asigna una puntuación a cada posible alineamiento mediante un sistema de recompensas y penalizaciones. Las coincidencias exactas (*matches*) incrementan la puntuación total, mientras que las sustituciones (*mismatches*), inserciones (*insertions*) y deleciones (*deletions*), conocidas conjuntamente como **indels**, reciben penalizaciones proporcionales a su longitud y frecuencia esperada. De esta manera, el algoritmo identifica el alineamiento óptimo que maximiza la similitud entre la lectura y la referencia.
 
-Durante esta fase se permiten:
+Otra característica importante de esta etapa es la posibilidad de realizar **alineamiento local**, permitiendo el recorte (*soft clipping*) de nucleótidos localizados en los extremos de la lectura cuando presentan baja calidad o corresponden a adaptadores remanentes del proceso de secuenciación. Esto mejora la precisión del alineamiento y aumenta la probabilidad de mapear correctamente lecturas que, de otro modo, serían descartadas.
 
-- sustituciones
-- inserciones
-- deleciones
-- regiones parcialmente alineadas
+### 5. Evaluación del alineamiento:
 
-Por esta razón Bowtie2 puede detectar pequeños indels con mucha mayor precisión que Bowtie original.
+Finalmente, el alineamiento obtenido es evaluado mediante un sistema de puntuación que considera la longitud del alineamiento, el número de coincidencias, las penalizaciones por indels y mismatches, así como la existencia de posibles alineamientos alternativos en otras regiones del genoma. Con esta información, el programa selecciona el mejor alineamiento para cada lectura y calcula posteriormente el **Mapping Quality Score (MAPQ)**, que representa la confianza estadística de que la lectura ha sido ubicada en la posición correcta del genoma de referencia.
 
----
+El valor de MAPQ se almacena en el archivo **SAM (Sequence Alignment/Map)**, específicamente en la quinta columna de cada registro de alineamiento, y se conserva posteriormente en su versión binaria BAM. Cada línea del archivo SAM representa una lectura individual e incluye información como el nombre de la lectura, el cromosoma de alineamiento, la posición genómica, el valor de MAPQ, la cadena CIGAR y otros campos que describen las características del alineamiento. De esta manera, el archivo SAM/BAM contiene toda la información necesaria para evaluar la calidad del mapeo y constituye el principal insumo para las etapas posteriores del análisis bioinformático.
 
-### 5. Evaluación del alineamiento
+El MAPQ se expresa mediante una escala Phred, en la que valores más altos indican una mayor probabilidad de que la lectura haya sido alineada correctamente. En términos generales, un valor de MAPQ = 0 indica que la lectura puede alinearse con una calidad similar en múltiples posiciones del genoma, mientras que valores superiores a 30 representan alineamientos de alta confianza y un valor de 60 suele corresponder a un alineamiento prácticamente único. Aunque la interpretación de esta escala es común entre los distintos alineadores, el algoritmo específico utilizado para estimar el MAPQ varía entre herramientas como Bowtie2 y BWA-MEM.
 
-Finalmente el algoritmo calcula un puntaje para cada alineamiento considerando:
+Durante el llamado de variantes, el valor de MAPQ constituye uno de los principales criterios para evaluar la confiabilidad de las lecturas. Generalmente, las lecturas con valores bajos de MAPQ son descartadas o reciben un menor peso en el análisis, ya que presentan una mayor probabilidad de estar alineadas incorrectamente y, por lo tanto, de generar falsos positivos en la identificación de SNPs e inserciones o deleciones (indels).
 
-- número de mismatches;
-- inserciones;
-- deleciones;
-- calidad de las bases;
-- alineamientos alternativos.
-
-A partir de esta información se calcula posteriormente el **Mapping Quality Score (MAPQ)**.
+Un alineamiento de alta calidad constituye por tanto el requisito indispensable para el descubrimiento confiable de variantes.
 
 ---
-
-
-
-
----
-
-# 4.3 Alineamiento de lecturas contra un genoma de referencia
-
-El alineamiento contra referencia consiste en asignar cada lectura de ADN a la región del genoma donde probablemente fue originada.
-
-Durante este proceso, el alineador compara la secuencia de cada lectura con millones de posiciones posibles del genoma y calcula cuál de ellas representa el alineamiento más probable.
-
-La calidad de este proceso depende de diversos factores, incluyendo:
-
-- longitud de la lectura;
-- calidad Phred;
-- presencia de variantes reales;
-- porcentaje de regiones repetitivas;
-- tamaño del genoma;
-- calidad del ensamblaje de referencia.
-
-Cuando existe un genoma de referencia de alta calidad, el alineamiento permite obtener una representación precisa de las diferencias genéticas entre la muestra y dicho genoma.
-
-No obstante, algunas regiones presentan secuencias altamente repetitivas o duplicadas, dificultando la asignación única de determinadas lecturas. En estos casos, los algoritmos asignan una probabilidad de confianza denominada **Mapping Quality (MAPQ)**, la cual refleja la certeza estadística de la posición seleccionada.
-
-Un alineamiento de alta calidad constituye el requisito indispensable para el descubrimiento confiable de variantes.
-
-
-
----
-
-# 4.4 Indexación del genoma de referencia
-
-El principal desafío computacional del alineamiento consiste en realizar búsquedas extremadamente rápidas dentro de genomas que contienen cientos o miles de millones de nucleótidos.
-
-Para resolver este problema, los alineadores modernos no comparan directamente cada lectura contra toda la secuencia del genoma. En su lugar, construyen previamente un índice comprimido que facilita las búsquedas.
-
-
-
-## 4.4.2 FM-index
-
-
-
----
-
-# 4.5 Algoritmos modernos de alineamiento
-
-Los alineadores actuales emplean una estrategia denominada **Seed-and-Extend**, diseñada para acelerar el proceso de búsqueda.
-
-En lugar de comparar la lectura completa contra todas las posiciones del genoma, el algoritmo divide inicialmente cada lectura en pequeños fragmentos llamados **semillas** (*seeds*), generalmente de entre 20 y 30 nucleótidos.
-
-Cada una de estas semillas se busca rápidamente utilizando el FM-index. Una vez encontrada una coincidencia potencial, el algoritmo extiende el alineamiento hacia ambos extremos utilizando técnicas de programación dinámica.
-
-Para esta fase de extensión se utilizan variantes optimizadas del algoritmo de Smith-Waterman, el cual permite identificar el alineamiento local de mayor puntuación considerando coincidencias, sustituciones, inserciones y deleciones.
-
-Este enfoque presenta múltiples ventajas:
-
-- disminuye considerablemente el tiempo de ejecución;
-- reduce el consumo de memoria;
-- permite detectar pequeñas inserciones y deleciones;
-- mejora la precisión del alineamiento en regiones variables;
-- facilita el procesamiento de millones de lecturas en tiempos razonables.
-
-La estrategia Seed-and-Extend representa actualmente la base computacional de la mayoría de los alineadores modernos utilizados en genómica, incluyendo Bowtie2, BWA-MEM y otros algoritmos ampliamente empleados en proyectos de resecuenciación.
-
-
-
-# 4.6 Bowtie y Bowtie2
-
-## 4.6.1 Introducción
-
-El alineamiento de millones de lecturas generadas por tecnologías de secuenciación masiva constituye uno de los problemas computacionales más importantes de la bioinformática moderna. Debido al enorme volumen de datos generado por plataformas NGS, resulta inviable comparar exhaustivamente cada lectura contra todas las posiciones posibles del genoma mediante algoritmos clásicos de alineamiento.
-
-Con el propósito de resolver este problema, Langmead et al. desarrollaron **Bowtie** en 2009, uno de los primeros alineadores ultrarrápidos para lecturas cortas basado en la Transformada de Burrows-Wheeler (Burrows-Wheeler Transform, BWT) y el FM-index. Posteriormente, Langmead y Salzberg publicaron **Bowtie2**, una versión completamente rediseñada capaz de detectar inserciones y deleciones, realizar alineamientos locales y soportar lecturas paired-end, convirtiéndose en uno de los alineadores más utilizados para datos Illumina.
-
-Bowtie2 es actualmente empleado en proyectos de resecuenciación genómica, secuenciación dirigida, metagenómica y numerosos estudios de genética de poblaciones debido a su equilibrio entre velocidad, precisión y bajo consumo de memoria.
-
----
-
 
 
 # 4.6.3 Modos de alineamiento
