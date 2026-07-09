@@ -1,16 +1,18 @@
 # Restriction-site Associated DNA Sequencing (RADseq)
 
-> Una guía sobre los métodos de secuenciación de representación reducida del genoma basados en enzimas de restricción.
+> Una guía sobre los métodos de secuenciación de representación reducida del genoma basados en enzimas de restricción y un flujo de trabajo completo de ddRADseq
 
 ---
 
-# ¿Qué es RADseq?
+# Introducción
 
-La **Restriction-site Associated DNA Sequencing (RADseq)** es una familia de técnicas de secuenciación de representación reducida (*Reduced Representation Sequencing, RRS*) diseñadas para obtener información genética de una fracción del genoma mediante el uso de **enzimas de restricción**.
+La **Restriction-site Associated DNA Sequencing (RADseq)** es una familia de técnicas de secuenciación de representación reducida (*Reduced Representation Sequencing, RRS*) que permitieron obtener miles de SNPs distribuidos por todo el genoma de forma reproducible y a bajo costo (Baird et al., 2008). Su principio se basa en el corte del ADN genómico con enzimas de restricción, seguido de la secuenciación de los fragmentos adyacentes a los sitios de corte, generando un muestreo sistemático del genoma.
 
-A diferencia de la secuenciación del genoma completo (**Whole Genome Sequencing, WGS**), RADseq no pretende secuenciar cada nucleótido del ADN. En su lugar, selecciona únicamente un subconjunto reproducible de regiones distribuidas a lo largo del genoma. Esto reduce drásticamente los costos de secuenciación y análisis, permitiendo estudiar cientos o miles de individuos simultáneamente.
+La variante **ddRADseq** (*double digest* RADseq; Peterson et al., 2012) reemplaza la fragmentación mecánica del RADseq original (Baird et al., 2008) por una segunda enzima de restricción. Solo se secuencian los fragmentos delimitados por ambas enzimas que cumplen un rango de tamaño determinado, lo que aumenta la reproducibilidad entre muestras y reduce el costo. Esta variante es actualmente una de las más utilizadas en estudios de genómica de poblaciones.
 
-Estas metodologías son especialmente útiles en organismos no modelo, donde no existe un genoma de referencia o el costo de un WGS resulta prohibitivo.
+Las metodologías de RADseq resultaron ser especialmente útiles en organismos no modelo, donde no existe un genoma de referencia o el costo de un WGS resulta prohibitivo. Los marcadores RAD se implementaron inicialmente mediante microarrays y posteriormente se adaptaron para NGS (secuenciación de próxima generación). Por lo que existen varias adaptaciones diseñadas para resolver desafíos específicos de fragmentación y cobertura de datos.
+
+En este módulo se simularon datos ddRADseq a partir de un fragmento del genoma de referencia de *Solanum lycopersicum* Micro-Tom (cromosoma 6, primeros 10 Mb; AP028940.1; GCF_036512215.1 SLM_r2.1), usando RADinitio. Las lecturas simuladas fueron procesadas con ipyrad para el ensamblaje de loci y la identificación de variantes. Finalmente, se estimaron estadísticas de diversidad genética —diversidad nucleotídica (π), heterocigosidad observada y diferenciación genética (F_ST) con VCFtools.
 
 ---
 
@@ -135,25 +137,6 @@ Utiliza dos enzimas de restricción para reducir la complejidad del genoma y fue
 ## SBG (Sequence-Based Genotyping)
 
 Emplea una combinación de enzimas de corte frecuente y corte raro para controlar con mayor precisión el número de loci obtenidos, disminuyendo aún más la complejidad del genoma.
-
----
-
-# Módulo 3 – Datos de Representación Reducida y Diversidad Genética
-
-**Autor:** Andrey Sánchez  
-**Programa:** Maestría en Ciencias – Biología, Universidad Nacional de Colombia  
-**Afiliación:** Herbario Nacional Colombiano (COL)  
-**Fecha:** Julio 2026
-
----
-
-# Introducción
-
-La secuenciación de ADN asociada a sitios de restricción (**RAD-seq**) fue el primer método que permitió obtener miles de SNPs distribuidos por todo el genoma de forma reproducible y a bajo costo (Baird et al., 2008). Su principio se basa en el corte del ADN genómico con enzimas de restricción, seguido de la secuenciación de los fragmentos adyacentes a los sitios de corte, generando un muestreo sistemático del genoma.
-
-La variante **ddRADseq** (*double digest* RADseq; Peterson et al., 2012) reemplaza la fragmentación mecánica por una segunda enzima de restricción. Solo se secuencian los fragmentos delimitados por ambas enzimas que cumplen un rango de tamaño determinado, lo que aumenta la reproducibilidad entre muestras y reduce el costo. Esta variante es actualmente una de las más utilizadas en estudios de genómica de poblaciones.
-
-En este módulo se simularon datos ddRADseq a partir de un fragmento del genoma de referencia de *Solanum lycopersicum* Micro-Tom (cromosoma 6, primeros 10 Mb; AP028940.1; GCF_036512215.1 SLM_r2.1), usando RADinitio. Las lecturas simuladas fueron procesadas con ipyrad para el ensamblaje de loci y la identificación de variantes. Finalmente, se estimaron estadísticas de diversidad genética —diversidad nucleotídica (π), heterocigosidad observada y diferenciación genética (F_ST)— con VCFtools.
 
 ---
 
