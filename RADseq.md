@@ -150,7 +150,7 @@ pip install radinitio
 
 ## 1. Obtención y preparación del genoma de referencia
 
-Se descargó la secuencia del cromosoma 6 de *Solanum lycopersicum* Micro-Tom (AP028940.1; 52,172,941 pb) desde NCBI en formato FASTA. Para reducir el tiempo de cómputo, se extrajo un fragmento de los primeros 10 Mb con `samtools faidx`:
+Se descargó la secuencia del cromosoma 6 del genoma de referencia de *Solanum lycopersicum* Micro-Tom (AP028940.1; 52,172,941 pb) desde NCBI en formato FASTA. Para reducir el tiempo de cómputo, se extrajo un fragmento de los primeros 10 Mb con `samtools faidx`:
 
 ```bash
 # Indexar el genoma
@@ -163,9 +163,6 @@ samtools faidx chr6_SLM.fasta "AP028940.1:1-10000000" > chr6_10Mb.fasta
 ls -lh chr6_10Mb.fasta
 # -rw-r--r-- 1 user 9.7M chr6_10Mb.fasta
 ```
-
-El fragmento resultante tiene un tamaño de **9.7 Mb**.
-
 ---
 
 ## 2. Simulación de datos ddRADseq con RADinitio
@@ -494,10 +491,3 @@ Los valores observados (0.143–0.220) son menores que la predicción teórica, 
 - Takei, H., et al. (2021). De novo genome assembly of two tomato ancestors, *Solanum pimpinellifolium* and *Solanum lycopersicum* var. *cerasiforme*, by long-read sequencing. *DNA Research*, 28(1), dsaa029.
 - Weir, B. S., & Cockerham, C. C. (1984). Estimating F-statistics for the analysis of population structure. *Evolution*, 38(6), 1358–1370.
 
-
-# Referencias
-
-- Baird NA et al. (2008). *Rapid SNP Discovery and Genetic Mapping Using Sequenced RAD Markers.*
-- Elshire RJ et al. (2011). *A Robust, Simple Genotyping-by-Sequencing (GBS) Approach.*
-- Peterson BK et al. (2012). *Double Digest RADseq.*
-- Andrews KR et al. (2016). *Harnessing the power of RADseq for ecological and evolutionary genomics.*
