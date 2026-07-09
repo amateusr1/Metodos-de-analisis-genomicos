@@ -138,7 +138,7 @@ Durante las etapas posteriores del procesamiento de datos, el campo FLAG constit
 Un alineamiento de alta calidad constituye por tanto el requisito indispensable para el descubrimiento confiable de variantes.
 
 ---
-## Formato SAM/BAM:
+## Formatos SAM/BAM:
 
 El archivo **SAM** es un formato de texto plano diseñado para almacenar los resultados del alineamiento de lecturas contra un genoma de referencia. Debido a que los experimentos de secuenciación de nueva generación generan millones de lecturas, los archivos SAM pueden alcanzar tamaños de varios gigabytes, dificultando su almacenamiento y procesamiento. Por esta razón, el formato SAM suele convertirse a **BAM (Binary Alignment/Map)**, que corresponde a su representación binaria comprimida. Ambos formatos contienen exactamente la misma información; la diferencia radica en que el archivo BAM ocupa menos espacio en disco y permite un acceso más eficiente a los datos.
 
