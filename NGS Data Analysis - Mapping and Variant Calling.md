@@ -1,6 +1,6 @@
 # NGS Data Analysis - Mapping and Variant Calling
 
-> Una guía sobre los fundamentos del mapeo de lecturasm y la llamada de variantes y un flujo de trabajo completo con datos de secuenciación de nueva generación (Next Generation Sequencing, NGS)
+> Una guía sobre los fundamentos del mapeo de lecturas y la llamada de variantes y un flujo de trabajo completo con datos de secuenciación de nueva generación (Next Generation Sequencing, NGS)
 
 # Introducción
 
