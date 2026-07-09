@@ -140,6 +140,10 @@ Un alineamiento de alta calidad constituye por tanto el requisito indispensable 
 ---
 ## Formato SAM/BAM:
 
+El archivo **SAM** es un formato de texto plano diseñado para almacenar los resultados del alineamiento de lecturas contra un genoma de referencia. Debido a que los experimentos de secuenciación de nueva generación generan millones de lecturas, los archivos SAM pueden alcanzar tamaños de varios gigabytes, dificultando su almacenamiento y procesamiento. Por esta razón, el formato SAM suele convertirse a **BAM (Binary Alignment/Map)**, que corresponde a su representación binaria comprimida. Ambos formatos contienen exactamente la misma información; la diferencia radica en que el archivo BAM ocupa menos espacio en disco y permite un acceso más eficiente a los datos.
+
+El formato BAM puede ordenarse según las coordenadas genómicas mediante **samtools sort** e indexarse con **samtools index**, lo que facilita el acceso aleatorio a regiones específicas del genoma sin necesidad de leer el archivo completo. Estas características hacen que el formato BAM sea el estándar utilizado por la mayoría de las herramientas de análisis posteriores, como **GATK**, **bcftools**, **VCFtools** y **IGV**, para el llamado de variantes, la visualización de alineamientos y otros análisis genómicos.
+
 <p align="center">
   <img width="616" height="328" alt="image" src="https://github.com/user-attachments/assets/186a9bd1-b829-4b6b-aa8e-3715c41aa6ee" />
 
@@ -149,10 +153,25 @@ Un alineamiento de alta calidad constituye por tanto el requisito indispensable 
 </p>
 
 <p align="center">
-<b>Figura 2.</b> Esquema general de la estrategia seed-and-extend utilizada por alineadores modernos como Bowtie2 y BWA-MEN. La estructura de datos corresponde al FM-index, construido a partir de la Transformada de Burrows-Wheeler (BWT), el cual permite localizar rápidamente las posiciones de cada semilla dentro del genoma de referencia. 
+<b>Figura 3.</b> Estructura general de un archivo SAM (Sequence Alignment/Map). El archivo está compuesto por una sección de cabecera (Header), que almacena información sobre el genoma de referencia y el proceso de alineamiento, y una sección de alineamientos (Alignment section), donde cada línea representa una lectura alineada al genoma. En cada registro se incluyen campos obligatorios como el nombre de la lectura (QNAME), el campo FLAG, el cromosoma de referencia (RNAME), la posición de alineamiento (POS), la calidad de mapeo (MAPQ), la cadena CIGAR, la secuencia (SEQ) y las calidades de las bases (QUAL), además de campos opcionales con información adicional del alineamiento. Adaptado de Li et al. (2009).
   
 </p>
 
+El archivo SAM está compuesto por una sección de cabecera (*Header*), que almacena información sobre el genoma de referencia y los parámetros del alineamiento, y una sección de alineamientos (*Alignment section*), donde cada línea representa una lectura alineada al genoma de referencia. Cada registro contiene información esencial para el análisis posterior, incluyendo el identificador de la lectura, la posición de alineamiento, la calidad del mapeo (**MAPQ**), la cadena **CIGAR**, la secuencia de nucleótidos y otros campos que describen las características del alineamiento. *Adaptado de Li et al. (2009).*
+
+| Campo | Descripción |
+|--------|-------------|
+| **QNAME** | Identificador único de la lectura (*Query template name*). |
+| **FLAG** | Campo numérico que codifica, mediante representación binaria, las características y el estado del alineamiento. |
+| **RNAME** | Nombre de la secuencia de referencia (cromosoma o contig) donde se alineó la lectura. |
+| **POS** | Posición inicial (base 1) del alineamiento sobre el genoma de referencia. |
+| **MAPQ** | Calidad del alineamiento (*Mapping Quality Score*), que estima la confianza del mapeo. |
+| **CIGAR** | Describe cómo se alineó la lectura respecto al genoma de referencia, indicando coincidencias, inserciones, deleciones y otras operaciones. |
+| **RNEXT** | Nombre de la secuencia de referencia donde se alineó la lectura pareja (*paired-end*). |
+| **PNEXT** | Posición inicial de la lectura pareja en el genoma de referencia. |
+| **TLEN** | Longitud observada del fragmento de ADN secuenciado (*Template Length*). |
+| **SEQ** | Secuencia de nucleótidos correspondiente a la lectura. |
+| **QUAL** | Calidad Phred de cada nucleótido presente en la lectura. |
 
 ---
 
