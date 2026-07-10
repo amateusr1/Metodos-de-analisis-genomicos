@@ -115,6 +115,16 @@ El valor de MAPQ se almacena en el archivo **SAM (Sequence Alignment/Map)**, esp
 
 El MAPQ se expresa mediante una escala Phred, en la que valores más altos indican una mayor probabilidad de que la lectura haya sido alineada correctamente. En términos generales, un valor de MAPQ = 0 indica que la lectura puede alinearse con una calidad similar en múltiples posiciones del genoma, mientras que valores superiores a 30 representan alineamientos de alta confianza y un valor de 60 suele corresponder a un alineamiento prácticamente único. Aunque la interpretación de esta escala es común entre los distintos alineadores, el algoritmo específico utilizado para estimar el MAPQ varía entre herramientas como Bowtie2 y BWA-MEM.
 
+Generalmente:
+
+| MAPQ | Interpretación |
+|------|----------------|
+| 0 | Múltiples posiciones posibles |
+| 10-20 | Baja confianza |
+| 20-30 | Confianza moderada |
+| >30 | Alta confianza |
+| 60 | Alineamiento prácticamente único |
+
 Durante el llamado de variantes, el valor de MAPQ constituye uno de los principales criterios para evaluar la confiabilidad de las lecturas. Generalmente, las lecturas con valores bajos de MAPQ son descartadas o reciben un menor peso en el análisis, ya que presentan una mayor probabilidad de estar alineadas incorrectamente y, por lo tanto, de generar falsos positivos en la identificación de SNPs e inserciones o deleciones (indels).
 
 ### **La cadena CIGAR (Compact Idiosyncratic Gapped Alignment Report)**
@@ -173,142 +183,7 @@ El archivo SAM está compuesto por una sección de cabecera (*Header*), que alma
 | **SEQ** | Secuencia de nucleótidos correspondiente a la lectura. |
 | **QUAL** | Calidad Phred de cada nucleótido presente en la lectura. |
 
----
-
-# 4.6.4 Lecturas Single-End y Paired-End
-
-Las tecnologías NGS permiten secuenciar un único extremo del fragmento (Single-End) o ambos extremos (Paired-End).
-
-## Single-End
-
-Cada fragmento produce únicamente una lectura.
-
-Su principal ventaja consiste en un menor costo experimental.
-
-No obstante, proporciona menor información sobre la estructura del ADN.
-
----
-
-## Paired-End
-
-En este caso cada fragmento genera dos lecturas.
-
-Ambas deben alinearse respetando:
-
-- orientación;
-- distancia esperada entre lecturas;
-- orden correcto.
-
-La información adicional mejora considerablemente:
-
-- la precisión del alineamiento;
-- la resolución de regiones repetitivas;
-- la detección de indels;
-- la detección de variantes estructurales.
-
-Por esta razón, la mayoría de los estudios modernos de resecuenciación utilizan secuenciación paired-end.
-
-
----
-
-# 4.7 Formatos SAM y BAM
-
-Una vez finalizado el alineamiento, los resultados deben almacenarse en un formato estándar que permita ser interpretado por diferentes programas bioinformáticos.
-
-Con este propósito se desarrolló el formato **SAM (Sequence Alignment Map)**.
-
-Debido a que los archivos SAM pueden ocupar decenas o cientos de gigabytes, normalmente se convierten a su versión binaria comprimida denominada **BAM (Binary Alignment Map)**.
-
-Estos formatos constituyen actualmente el estándar universal para representar alineamientos de secuencias.
-
----
-
-## 4.7.1 Estructura general del archivo SAM
-
-Un archivo SAM posee dos partes.
-
-### Cabecera (Header)
-
-Comienza con el símbolo **@**.
-
-Contiene información sobre:
-
-- versión del formato;
-- nombre del genoma;
-- longitud de los cromosomas;
-- programa utilizado para el alineamiento.
-
----
-
-### Registros
-
-Cada línea representa una lectura individual alineada contra el genoma.
-
-Cada registro contiene once campos obligatorios y diversos campos opcionales.
-
-Los principales son:
-
-| Campo | Descripción |
-|--------|-------------|
-| QNAME | Nombre de la lectura |
-| FLAG | Estado del alineamiento |
-| RNAME | Cromosoma |
-| POS | Posición inicial |
-| MAPQ | Calidad del alineamiento |
-| CIGAR | Descripción del alineamiento |
-| RNEXT | Cromosoma de la lectura pareada |
-| PNEXT | Posición de la pareja |
-| TLEN | Tamaño del inserto |
-| SEQ | Secuencia |
-| QUAL | Calidad Phred |
-
----
-
-# 4.7.2 Mapping Quality (MAPQ)
-
-MAPQ representa la confianza estadística de que una lectura fue alineada en la posición correcta.
-
-Mientras mayor sea el valor de MAPQ, menor es la probabilidad de que exista otro alineamiento igualmente probable.
-
-Generalmente:
-
-| MAPQ | Interpretación |
-|------|----------------|
-| 0 | Múltiples posiciones posibles |
-| 10-20 | Baja confianza |
-| 20-30 | Confianza moderada |
-| >30 | Alta confianza |
-| 60 | Alineamiento prácticamente único |
-
-Durante el llamado de variantes suelen descartarse lecturas con valores bajos de MAPQ para reducir falsos positivos.
-
----
-
-
-
----
-
-# 4.7.5 Conversión SAM → BAM
-
-Debido al gran tamaño de los archivos SAM, normalmente se convierten inmediatamente al formato BAM utilizando SAMtools.
-
-Posteriormente se realizan tres procedimientos esenciales:
-
-1. Conversión a BAM.
-2. Ordenamiento por coordenadas genómicas.
-3. Indexación mediante archivos BAI.
-
-La indexación permite acceder rápidamente a regiones específicas del genoma sin necesidad de cargar el archivo completo en memoria.
-
----
-
-# 4.8 Evaluación de la calidad del alineamiento
-
-Una vez generado el archivo BAM, resulta indispensable evaluar la calidad del alineamiento antes del llamado de variantes.
-
-Una mala calidad del alineamiento puede producir errores sistemáticos durante la identificación de SNPs e indels.
-
-Las herramientas más utilizadas para esta etapa son **Qualimap**, **SAMtools stats** e **IGV (Integrative Genomics Viewer)**.
+Una vez generado el archivo BAM, es indispensable evaluar la calidad del alineamiento antes del llamado de variantes y realizar un filtrado del mismo. Una mala calidad del alineamiento puede producir errores sistemáticos durante la identificación de SNPs e indels. Las herramientas más utilizadas para esta etapa son **Qualimap**, **SAMtools stats** e **IGV (Integrative Genomics Viewer)**.
 
 Los principales parámetros evaluados incluyen:
 
@@ -322,7 +197,82 @@ Los principales parámetros evaluados incluyen:
 - perfiles de clipping;
 - contenido nucleotídico.
 
-Estas métricas permiten detectar sesgos experimentales o problemas durante la preparación de bibliotecas y el proceso de secuenciación.
+Estas métricas tambien pueden permitir detectar sesgos experimentales o problemas durante la preparación de bibliotecas y el proceso de secuenciación.
+
+---
+
+### Lecturas Single-End y Paired-End
+
+Las tecnologías NGS permiten secuenciar un único extremo del fragmento (Single-End) o ambos extremos (Paired-End). En Single-End cada fragmento produce únicamente una lectura. Su principal ventaja consiste en un menor costo experimental. No obstante, proporciona menor información sobre la estructura del ADN. Con Paired-End cada fragmento genera dos lecturas. Ambas deben alinearse respetando: orientación; distancia esperada entre lecturas; orden correcto. La información adicional mejora considerablemente: la precisión del alineamiento; la resolución de regiones repetitivas; la detección de indels y la detección de variantes estructurales. Por esta razón, la mayoría de los estudios modernos de resecuenciación utilizan secuenciación paired-end.
+
+---
+
+## Alineamiento de lecturas largas
+
+Las plataformas de secuenciación de tercera generación (Nanopore de Oxford Nanopore Technologies y PacBio de Pacific Biosciences) generan lecturas de longitudes muy superiores a Illumina —típicamente entre 10,000 y 100,000 pb, con registros de hasta 4 Mb en Nanopore, pero con tasas de error mucho más altas. Esto crea un problema fundamental para los alineadores basados en BWT:
+
+El índice BWT funciona buscando coincidencias exactas o casi exactas entre la lectura y la referencia. Con tasas de error del 1-5%, una lectura de Nanopore de 10,000 pb puede tener entre hasta 500 errores distribuidos a lo largo de su longitud. Un alineador BWT intentaría dividir esa lectura en semillas exactas cada vez más cortas hasta encontrar coincidencias, lo que se vuelve computacionalmente prohibitivo: las semillas serían tan cortas que habría miles de posibles posiciones en el genoma donde podrían alinear, generando una explosión combinatoria.
+
+La tecnología PacBio HiFi (también llamado CCS, Circular Consensus Sequencing) merece mención aparte porque genera lecturas largas (~15–20 kb) pero con tasas de error muy bajas (~0.1%), comparables a Illumina. Esto ocurre porque la polimerasa lee el mismo fragmento circular múltiples veces y genera una secuencia consenso. Por lo que BWA-MEM2 también funciona razonablemente bien en este caso, tambien existe pbmm2: el alineador oficial de PacBio, basado en la tecnología Minimap2 pero con optimizaciones específicas para HiFi.
+
+En este contexto, en cuanto alineamiento de lecturas largas se trate Minimap2 y NGMLR se han establecido como uno los alineadores más empleados.
+
+### Minimap2 y los minimizers 
+
+Desarrollado por: Heng Li (2018), el mismo autor de BWA. Un minimizer es una forma inteligente de reducir la cantidad de k-mers que hay que comparar sin perder la capacidad de encontrar alineamientos. Funciona mediante una ventana deslizante de tamaño w que se mueve a lo largo de la secuencia. En cada posición de la ventana, hay w k-mers posibles. El minimizer es simplemente el k-mer lexicográficamente menor (o el de menor valor hash) dentro de esa ventana. Solo ese k-mer se guarda en el índice.
+
+Por ejemplo, con w=5 y k=3, en la secuencia ACGTACGT:
+
+Ventana 1: ACG, CGT, GTA, TAC, ACG → minimizer: ACG
+Ventana 2: CGT, GTA, TAC, ACG, CGT → minimizer: ACG
+Ventana 3: GTA, TAC, ACG, CGT, GTA → minimizer: ACG
+
+Esto reduce drásticamente el número de k-mers que hay que indexar y comparar (típicamente por un factor de w/2), sin perder la capacidad de detectar regiones homólogas entre secuencias divergentes.
+
+Como funciona: 
+
+1. Indexación: Minimap2 construye un índice de minimizers del genoma de referencia mucho más compacto que un índice BWT completo.
+2. Búsqueda de semillas (seeding): Para cada lectura larga, calcula sus minimizers y los busca en el índice de la referencia. Dado que las lecturas son muy largas, aunque tengan muchos errores, habrá suficientes minimizers compartidos con la referencia para identificar la región correcta.
+3. Encadenamiento (chaining): Las semillas coincidentes se agrupan en cadenas colineares usando programación dinámica. Una cadena es un conjunto de semillas que aparecen en el mismo orden y orientación tanto en la lectura como en la referencia, lo que indica que provienen de la misma región genómica. Este paso es clave: permite manejar grandes gaps (intrones, inserciones, deleciones) que serían problemáticos para BWA.
+4. Alineamiento local (alignment): Solo las regiones entre semillas de la misma cadena necesitan alineamiento detallado. Minimap2 usa el algoritmo de programación dinámica acelerada con instrucciones SIMD (similar al algoritmo de Smith-Waterman pero mucho más rápido) para rellenar los gaps entre semillas.
+5. Salida en formato SAM/PAF: El resultado es un alineamiento con CIGAR string que describe exactamente las coincidencias, sustituciones, inserciones y deleciones.
+
+Minimap2 tiene diferentes configuraciones según el tipo de dato: PresetUsomap-ontLecturas Nanopore (alta tasa de error, errores aleatorios)map-pbLecturas PacBio CLR (alta tasa de error, errores sistemáticos)map-hifiLecturas PacBio HiFi/CCS (baja tasa de error, ~0.1%)srLecturas cortas Illumina paired-endspliceAlineamiento de ARN-seq con splicingasm5Ensamblaje vs referencia muy similar (<5% divergencia)
+
+
+<p align="center">
+  <img width="1536" height="1128" alt="image" src="https://github.com/user-attachments/assets/25429fca-b3c5-435b-81ae-4adfce8e1d5f" />
+
+</p>
+
+<p align="center">
+<b>Figura 4.</b> Esquema general del pipeline de Minimap2
+  
+</p>
+
+### NGMLR
+
+Minimap2 es excelente para alineamientos generales, pero tiene una limitación importante en regiones con variantes estructurales (SVs): grandes inserciones, deleciones, inversiones o translocaciones. En estas regiones, el encadenamiento de minimizers de Minimap2 puede generar alineamientos que "saltan" sobre la variante sin detectarla correctamente, o que dividen la lectura en múltiples alineamientos secundarios en lugar de un solo alineamiento con el gap correcto. NGMLR fue diseñado específicamente para maximizar la precisión del alineamiento en regiones con SVs.
+
+Algoritmo de NGMLR:
+
+1. Indexación con k-mers: NGMLR indexa la referencia con k-mers convex (convex k-mers), una variante que es más robusta a errores de secuenciación que los k-mers estándar. Busca k-mers de la lectura en la referencia para identificar regiones candidatas de alineamiento, similar a Minimap2 pero con parámetros más conservadores.
+
+2. Alineamiento con modelo de gap convexo: La diferencia clave de NGMLR está en el modelo de penalización de gaps que usa durante el alineamiento: Los alineadores estándar usan una penalización afín de gaps: penalización de apertura + penalización por cada base del gap. Este modelo penaliza mucho las deleciones grandes, lo que hace que el alineador prefiera dividir la lectura en múltiples fragmentos antes que reportar una deleción de 10,000 pb. NGMLR usa una penalización convexa de gaps: la penalización crece rápidamente al inicio del gap pero se satura para gaps grandes. Matemáticamente: gap_penalty = a + b × log(gap_length). Esto hace que gaps grandes sean tan o más "baratos" que muchos gaps pequeños, lo que favorece el reporte correcto de grandes SVs en lugar de fragmentar el alineamiento.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ---
 
@@ -1022,11 +972,6 @@ Diversos estudios han demostrado que DeepVariant alcanza precisiones comparables
 
 ---
 
-# 4.20 Consideraciones generales
-
-La precisión del llamado de variantes depende directamente de la calidad de todas las etapas previas del análisis. Un alineamiento incorrecto, una cobertura insuficiente o la presencia de errores sistemáticos pueden generar un elevado número de falsos positivos o falsos negativos.
-
-Por ello, el análisis de datos NGS debe entenderse como un flujo de trabajo integrado, donde cada etapa influye sobre la siguiente. La utilización de herramientas robustas como Bowtie2 para el alineamiento y GATK para el llamado de variantes, junto con procedimientos adecuados de control de calidad y filtrado, permite obtener conjuntos de variantes altamente confiables para estudios de genética molecular, genética de poblaciones, evolución y mejoramiento genético.
 
 ---
 
