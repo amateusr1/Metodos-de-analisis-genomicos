@@ -300,13 +300,91 @@ gatk CreateSequenceDictionary \
 
 ## 2. Alineamiento de las lecturas al genoma de referencia
 
-Las lecturas fueron alineadas utilizando BWA-MEM2. Se añadió un Read Group (RG) mediante el parámetro -R. El Read Group es un conjunto de metadatos que queda almacenado en el archivo BAM e identifica el origen de las lecturas. Incluye información como el nombre de la muestra (SM), un identificador del conjunto de datos (ID), la plataforma de secuenciación (PL, por ejemplo, ILLUMINA) y la biblioteca de secuenciación (LB). Estos datos permiten que GATK reconozca a qué muestra pertenece cada lectura y procesen correctamente los archivos durante el llamado de variantes y otros análisis posteriores.
+Las lecturas fueron alineadas utilizando BWA-MEM2. Se añadió un Read Group (RG) mediante el parámetro -R. El Read Group es el conjunto de metadatos que queda almacenado en el archivo BAM e identifica el origen de las lecturas. Incluye información como el nombre de la muestra (SM), un identificador del conjunto de datos (ID), la plataforma de secuenciación (PL, por ejemplo, ILLUMINA) y la biblioteca de secuenciación (LB). Estos datos permiten que GATK reconozca a qué muestra pertenece cada lectura y procesen correctamente los archivos durante el llamado de variantes. Los archivos *_1.fastq y *_2.fastq representan las lecturas forward y reverse de cada muestra. 
 
-Durante el alineamiento se incorporó un Read Group (RG) para cada muestra mediante el parámetro -R. Este campo contiene información sobre el identificador de la muestra (SM), el identificador del experimento (ID), la plataforma de secuenciación (PL) y la biblioteca utilizada (LB). La inclusión de esta información es indispensable para herramientas posteriores como GATK, ya que permite distinguir correctamente las muestras durante el llamado y filtrado de variantes.
+El resultado generado por BWA-MEM2 se produce inicialmente en formato SAM y fue enviado directamente mediante una tubería (pipe) a SAMtools sort, evitando la creación de archivos intermedios. SAMtools ordenó los alineamientos según sus coordenadas genómicas y almacenó el resultado en formato BAM ordenado (*.sorted.bam).
 
-El resultado generado por BWA-MEM2 se produjo inicialmente en formato SAM y fue enviado directamente mediante una tubería (pipe) a SAMtools sort, evitando la creación de archivos intermedios. SAMtools ordenó los alineamientos según sus coordenadas genómicas y almacenó el resultado en formato BAM, un formato binario comprimido que reduce el espacio de almacenamiento y permite un acceso mucho más eficiente durante las etapas posteriores del análisis.
+El alineamiento se realizó empleando 32 hilos de procesamiento tanto para BWA-MEM2 como para SAMtools, aprovechando la paralelización. 
 
-El alineamiento se realizó empleando 32 hilos de procesamiento tanto para BWA-MEM2 como para SAMtools, aprovechando el paralelismo disponible en el servidor de cómputo
+```
+conda activate gatk-4.6.2
+
+export REF="/scratchsan/amateusr/ref_genome_tomate/GCF_036512215.1_SLM_r2.1_genomic.fna"
+export OUT="/scratchsan/amateusr/outs"
+
+# Muestra 1: SRR31477438
+bwa-mem2 mem \
+    -t 32 \                         # Número de hilos
+    -R "@RG\tID:SRR31477438\tSM:SRR31477438\tPL:ILLUMINA\tLB:lib1" \  # Read group (requerido por GATK)
+    $REF \
+    reads/SRR31477438_1.fastq \
+    reads/SRR31477438_2.fastq | \
+    samtools sort \
+    -@ 32 \                         # Hilos para ordenamiento
+    -o $OUT/SRR31477438.sorted.bam  # BAM ordenado por coordenadas
+
+# Muestra 2: SRR38359005
+bwa-mem2 mem \
+    -t 32 \
+    -R "@RG\tID:SRR38359005\tSM:SRR38359005\tPL:ILLUMINA\tLB:lib1" \
+    $REF \
+    reads/SRR38359005_1.fastq \
+    reads/SRR38359005_2.fastq | \
+    samtools sort \
+    -@ 32 \
+    -o $OUT/SRR38359005.sorted.bam
+
+  # Muestra 3: SRR37254991
+bwa-mem2 mem \
+    -t 32 \
+    -R "@RG\tID:SRR37254991\tSM:SRR37254991\tPL:ILLUMINA\tLB:lib1" \
+    $REF \
+    reads/SRR37254991_1.fastq \
+    reads/SRR37254991_2.fastq | \
+    samtools sort \
+    -@ 32 \
+    -o $OUT/SRR37254991.sorted.bam
+
+```
+## 3. Marcado de duplicados de PCR
+
+Los duplicados de PCR (lecturas que mapean a la misma posición y son artefactos de la amplificación) fueron marcados (no eliminados) con Picard MarkDuplicates. GATK los ignora automáticamente durante la llamada de variantes.
+
+```
+Muestra 1
+gatk MarkDuplicates \
+    -I $OUT/SRR31477438.sorted.bam \
+    -O $OUT/SRR31477438.markdup.bam \
+    -M $OUT/SRR31477438.metrics.txt  # Archivo de métricas de duplicados
+
+# Muestra 2
+gatk MarkDuplicates \
+    -I $OUT/SRR38359005.sorted.bam \
+    -O $OUT/SRR38359005.markdup.bam \
+    -M $OUT/SRR38359005.metrics.txt
+
+# Muestra 3
+gatk MarkDuplicates \
+    -I $OUT/SRR37254991.sorted.bam \
+    -O $OUT/SRR37254991.markdup.bam \
+    -M $OUT/SRR37254991.metrics.txt
+
+# Indexar los BAM procesados
+samtools index $OUT/SRR31477438.markdup.bam
+samtools index $OUT/SRR38359005.markdup.bam
+samtools index $OUT/SRR37254991.markdup.bam
+
+```
+GATK Best Practices generalmente confía en el alineamiento de BWA-MEM y utiliza la información del MAPQ durante el llamado de variantes, por lo que no siempre recomienda un filtrado previo. Sin embargo, en muchos casos es común eliminar lecturas con MAPQ < 20 o MAPQ < 30 para reducir alineamientos ambiguos, especialmente en regiones repetitivas, antes de realizar el llamado de variantes.
+
+Una forma sencilla es de ver la distribución del MAPQ es con samtools stats:
+
+```
+samtools stats SRR31477438.sorted.markdup.bam > SRR31477438.stats
+
+```
+
+  
 
 # Referencias
 
