@@ -263,6 +263,51 @@ Algoritmo de NGMLR:
 
 ---
 
+# Un flujo de trabajo completo para mapear lecturas cortas contra un genoma de referencia. 
+
+En este módulo se procesaron tres muestras de *Solanum sección lycopersicum* secuenciadas por WGS con Illumina: una accesión de *S. lycopersicum var. cerasiforme* (SLC; SRR31477438), una accesión de *S. lycopersicum var. lycopersicum* (LA1924; SRR38359005) y una accesión de *S. pimpinellifolium* (SRR37254991), mapeadas contra el genoma de referencia del tomate cultivado (*S. lycopersicum var. lycopersicum* Micro-Tom, ensamblaje SLM_r2.1 (GCF_036512215.1; 832.8 Mb). Las lecturas WGS de las muestras fueron descargadas desde la base de datos SRA del NCBI usando fasterq-dump, en formato FASTA.
+
+---
+
+Todos los análisis se ejecutaron en el clúster de cómputo HPC perteneciente a la Facultad de Ciencias de la Universidad Nacional de Colombia mediante scripts SLURM, utilizando el gestor de paquetes Conda y entornos virtuales asociados. La instalación y resolución de dependencias se ejecuto a través de Anaconda y Miniconda.
+
+```
+
+# Carga del módulo de conda
+module load envs/anaconda3
+source /scratchsan1/anaconda3/etc/profile.d/conda.sh
+
+```
+## 1. Indexación del genoma de referencia
+
+Antes de realizar el alineamiento de las lecturas, el genoma de referencia debe indexarse. Estos archivos permiten que las herramientas de alineamiento y análisis accedan rápidamente a las secuencias del genoma sin tener que recorrer el archivo FASTA completo en cada operación.
+
+Se generaron tres índices complementarios: Índice de BWA-MEM2 (bwa-mem2 index): genera un conjunto de archivos auxiliares basados en el algoritmo Burrows–Wheeler Transform (BWT) y el FM-index. Índice FASTA de SAMtools (samtools faidx): crea un archivo con extensión .fai que almacena la posición de inicio, longitud y coordenadas de cada cromosoma o secuencia del genoma de referencia. Utilizado por herramientas posteriores. Diccionario de secuencias de GATK (CreateSequenceDictionary): genera un archivo .dict que contiene los nombres, longitudes y metadatos de cada secuencia presente en el genoma de referencia. Este archivo es requerido por GATK para verificar la consistencia entre el genoma de referencia y los archivos BAM durante etapas posteriores como el llamado de variantes.
+
+```
+
+# Índice BWA-MEM2
+bwa-mem2 index GCF_036512215.1_SLM_r2.1_genomic.fna
+
+# Índice SAMtools (para acceso aleatorio)
+samtools faidx GCF_036512215.1_SLM_r2.1_genomic.fna
+
+# Diccionario de secuencias (requerido por GATK)
+gatk CreateSequenceDictionary \
+    -R GCF_036512215.1_SLM_r2.1_genomic.fna
+
+```
+
+## 2. Alineamiento de las lecturas al genoma de referencia
+
+Las lecturas fueron alineadas utilizando BWA-MEM2. Se añadió un Read Group (RG) mediante el parámetro -R. El Read Group es un conjunto de metadatos que queda almacenado en el archivo BAM e identifica el origen de las lecturas. Incluye información como el nombre de la muestra (SM), un identificador del conjunto de datos (ID), la plataforma de secuenciación (PL, por ejemplo, ILLUMINA) y la biblioteca de secuenciación (LB). Estos datos permiten que GATK reconozca a qué muestra pertenece cada lectura y procesen correctamente los archivos durante el llamado de variantes y otros análisis posteriores.
+
+Durante el alineamiento se incorporó un Read Group (RG) para cada muestra mediante el parámetro -R. Este campo contiene información sobre el identificador de la muestra (SM), el identificador del experimento (ID), la plataforma de secuenciación (PL) y la biblioteca utilizada (LB). La inclusión de esta información es indispensable para herramientas posteriores como GATK, ya que permite distinguir correctamente las muestras durante el llamado y filtrado de variantes.
+
+El resultado generado por BWA-MEM2 se produjo inicialmente en formato SAM y fue enviado directamente mediante una tubería (pipe) a SAMtools sort, evitando la creación de archivos intermedios. SAMtools ordenó los alineamientos según sus coordenadas genómicas y almacenó el resultado en formato BAM, un formato binario comprimido que reduce el espacio de almacenamiento y permite un acceso mucho más eficiente durante las etapas posteriores del análisis.
+
+El alineamiento se realizó empleando 32 hilos de procesamiento tanto para BWA-MEM2 como para SAMtools, aprovechando el paralelismo disponible en el servidor de cómputo
+
 # Referencias
 
 - Broad Institute. (2024). *Genome Analysis Toolkit (GATK) Best Practices*. https://gatk.broadinstitute.org/
