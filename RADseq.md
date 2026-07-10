@@ -175,7 +175,7 @@ Target Enrichment: Es el método que más ha crecido en la última década, part
 
 ## Entorno computacional
 
-Todos los análisis se realizaron en Ubuntu bajo WSL2 (Windows Subsystem for Linux) localmente, usando el gestor de paquetes conda (Miniforge3).
+Todos los análisis se realizaron en Ubuntu bajo WSL2 (Windows Subsystem for Linux) localmente, usando el gestor de paquetes conda (Miniforge3) y entornos virtuales asociados. La instalación y resolución de dependencias se ejecuto a través de Anaconda y Miniconda.
 
 ```bash
 # Creación del ambiente conda
