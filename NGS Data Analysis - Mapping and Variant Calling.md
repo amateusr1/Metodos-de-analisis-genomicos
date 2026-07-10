@@ -241,12 +241,13 @@ Minimap2 tiene diferentes configuraciones según el tipo de dato: PresetUsomap-o
 
 
 <p align="center">
-  <img width="1536" height="1128" alt="image" src="https://github.com/user-attachments/assets/25429fca-b3c5-435b-81ae-4adfce8e1d5f" />
+  <img width="708" height="662" alt="image" src="https://github.com/user-attachments/assets/2653697d-0a0c-4f74-839c-32c83826ef45" />
+
 
 </p>
 
 <p align="center">
-<b>Figura 4.</b> Esquema general del pipeline de Minimap2
+<b>Figura 4.</b> Aplicación de minimizadores en la alineación de lecturas. Un alineador de lecturas típico que sigue el enfoque de alineación de cadena de semillas primero encuentra minimizadores de referencia y los almacena en una tabla hash. Las semillas son subcadenas (minimizadores) de la referencia o de la lectura. Las semillas que coinciden entre la lectura y la referencia se denominan anclas, que se encuentran consultando los minimizadores de lectura en la tabla hash. Luego, las anclas se encadenan y finalmente se alinean las bases.
   
 </p>
 
