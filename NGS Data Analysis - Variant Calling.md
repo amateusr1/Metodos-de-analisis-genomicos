@@ -1,80 +1,16 @@
+# NGS Data Analysis - Variant Calling
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+> Una guía para el procesamiento de BAMs y llamada de variantes y un flujo de trabajo completo con GATK
 ---
+# Introducción
 
-# 4.9 Introducción al llamado de variantes
+El objetivo del llamado de variantes consiste en identificar todas las posiciones del genoma donde las muestras presentan diferencias respecto al genoma de referencia, estas diferencias reciben el nombre de **variantes genéticas**. Las variantes más comunes son: **SNP**, cambio de un único nucleótido; **INDEL** inserción o deleción de uno o varios nucleótidos; **MNP**, sustitución simultánea de varios nucleótidos consecutivos; **Variantes estructurales** incluyen, inversiones, translocaciones, duplicaciones, grandes inserciones, grandes deleciones, estas ultimas generalmente requieren algoritmos especializados distintos de los llamadores convencionales de SNPs.
 
-El objetivo del llamado de variantes consiste en identificar todas las posiciones del genoma donde las muestras presentan diferencias respecto al genoma de referencia.
+El llamado de variantes constituye un proceso de inferencia estadística cuyo objetivo es distinguir diferencias genéticas reales de los errores introducidos durante la obtención y procesamiento de los datos de secuenciación. Aunque las plataformas modernas de NGS presentan tasas de error relativamente bajas, ningún experimento de secuenciación está completamente libre de errores. En consecuencia, no toda discrepancia observada entre una lectura y el genoma de referencia corresponde necesariamente a una variante biológica.
 
-Estas diferencias reciben el nombre de **variantes genéticas**.
+Los primeros algoritmos de llamado de variantes utilizaban reglas simples basadas en el conteo de nucleótidos observados en cada posición. Sin embargo, este enfoque resultó insuficiente para analizar regiones con baja cobertura, errores de secuenciación o variantes complejas. Actualmente, prácticamente todos los llamadores modernos emplean modelos probabilísticos basados en inferencia bayesiana, estos modelos integran simultáneamente la información proveniente de: calidad de las bases; calidad del alineamiento; profundidad de cobertura; frecuencia esperada de variantes; distribución de alelos.
 
-Las variantes más comunes son:
-
-## SNP
-
-Cambio de un único nucleótido.
-
-Ejemplo:
-
-```
-Referencia : A
-Muestra    : G
-```
-
----
-
-## INDEL
-
-Inserción o deleción de uno o varios nucleótidos.
-
-Ejemplo:
-
-```
-Referencia : ATCGTT
-Muestra    : ATGTT
-```
-
----
-
-## MNP
-
-Sustitución simultánea de varios nucleótidos consecutivos.
-
----
-
-## Variantes estructurales
-
-Incluyen:
-
-- inversiones;
-- translocaciones;
-- duplicaciones;
-- grandes inserciones;
-- grandes deleciones.
-
-Generalmente requieren algoritmos especializados distintos de los llamadores convencionales de SNPs.
-
----
-
-# 4.10 Concepto de genotipo
-
-El llamado de variantes no solamente identifica la presencia de una mutación.
-
-También determina el **genotipo** del individuo.
-
-En organismos diploides existen tres posibilidades básicas.
+Adionalmente el llamado de variantes no solamente identifica la presencia de una mutación, también determina el **genotipo** del individuo, en organismos diploides existen tres posibilidades básicas:
 
 | Genotipo | Significado |
 |-----------|-------------|
@@ -82,82 +18,39 @@ En organismos diploides existen tres posibilidades básicas.
 | 0/1 | Heterocigoto |
 | 1/1 | Homocigoto alternativo |
 
-La determinación correcta del genotipo depende de múltiples factores:
+La determinación correcta del genotipo depende de algunos de estos mismos factores: profundidad de cobertura; calidad Phred; calidad del alineamiento; distribución de alelos; probabilidad estadística.
 
-- profundidad de cobertura;
-- calidad Phred;
-- calidad del alineamiento;
-- distribución de alelos;
-- probabilidad estadística.
+El resultado final del llamado de variantes corresponde al genotipo con mayor probabilidad posterior.
 
-Por ello, los llamadores modernos emplean modelos probabilísticos complejos en lugar de simples conteos de nucleótidos observados.
-# 4.11 Errores asociados al llamado de variantes
+# Manejo de fuentes de error en el llamado de variantes 
 
-El llamado de variantes constituye un proceso de inferencia estadística cuyo objetivo es distinguir diferencias genéticas reales de los errores introducidos durante la obtención y procesamiento de los datos de secuenciación. Aunque las plataformas modernas de NGS presentan tasas de error relativamente bajas, ningún experimento de secuenciación está completamente libre de errores. En consecuencia, no toda discrepancia observada entre una lectura y el genoma de referencia corresponde necesariamente a una variante biológica.
+Las principales fuentes de error durante el llamado de variantes pueden clasificarse en errores experimentales, errores computacionales y errores derivados del propio genoma de referencia. El reconocimiento y control de estos factores constituye uno de los aspectos más importantes del análisis bioinformático. 
 
-Las principales fuentes de error pueden clasificarse en errores experimentales, errores computacionales y errores derivados del propio genoma de referencia. El reconocimiento y control de estos factores constituye uno de los aspectos más importantes del análisis bioinformático.
+Durante la síntesis y detección de nucleótidos pueden producirse errores en la identificación de las bases. Estos errores aumentan generalmente hacia los extremos de las lecturas debido a la disminución progresiva de la intensidad de fluorescencia y al incremento del ruido instrumental. Cada base recibe una puntuación de calidad Phred que representa la probabilidad de que dicha base haya sido identificada incorrectamente. Una baja calidad de secuenciación incrementa la probabilidad de detectar falsos SNPs o falsos indels.
 
-## 4.11.1 Errores de secuenciación
+Estos errores se controlan mediante trimming de lecturas de baja calidad con herramientas como Trimmomatic, fastp, o el módulo clean de Captus (https://edgardomortiz.github.io/captus.docs/) altamente recomendado y filtrando sitios con puntuación QUAL baja en el VCF final.
 
-Durante la síntesis y detección de nucleótidos pueden producirse errores en la identificación de las bases. Estos errores aumentan generalmente hacia los extremos de las lecturas debido a la disminución progresiva de la intensidad de fluorescencia y al incremento del ruido instrumental.
 
-Cada base recibe una puntuación de calidad Phred que representa la probabilidad de que dicha base haya sido identificada incorrectamente. Una baja calidad de secuenciación incrementa la probabilidad de detectar falsos SNPs o falsos indels.
 
----
+La amplificación mediante PCR puede introducir mutaciones artificiales que posteriormente son interpretadas como variantes reales. Además, la sobreamplificación puede originar múltiples copias idénticas del mismo fragmento de ADN, conocidas como duplicados de PCR. Estos duplicados generan una representación artificialmente elevada de determinados alelos y pueden sesgar la estimación del genotipo. En el módulo anterior explico como realizar el marcado de duplicados mediante Picard MarkDuplicates. 
 
-## 4.11.2 Errores durante la preparación de bibliotecas
+Los errores de mapeo constituyen una de las principales causas de falsos positivos durante el llamado de variantes. Este problema ocurre principalmente cuando una lectura puede alinearse con alta similitud en múltiples regiones del genoma, situación frecuente en secuencias repetitivas, familias multigénicas o regiones altamente conservadas. Los alineadores asignan un valor de Mapping Quality (MAPQ) para estimar la probabilidad de que una lectura haya sido ubicada correctamente. 
 
-La amplificación mediante PCR puede introducir mutaciones artificiales que posteriormente son interpretadas como variantes reales. Además, la sobreamplificación puede originar múltiples copias idénticas del mismo fragmento de ADN, conocidas como duplicados de PCR.
+El genoma de referencia representa únicamente un individuo o ensamblaje específico de la especie y no necesariamente refleja toda la diversidad genética existente. Errores de ensamblaje, regiones faltantes, inversiones o secuencias incorrectamente ensambladas pueden provocar discrepancias sistemáticas entre las lecturas y la referencia.
 
-Estos duplicados generan una representación artificialmente elevada de determinados alelos y pueden sesgar la estimación del genotipo.
+La profundidad de secuenciación determina el número de lecturas que cubren una determinada posición del genoma. Una cobertura baja disminuye considerablemente la confianza en la estimación del genotipo debido a que un pequeño número de errores experimentales puede confundirse con variantes verdaderas. Por el contrario, coberturas excesivamente altas pueden indicar la presencia de duplicados de PCR o regiones repetitivas.
 
 ---
 
-## 4.11.3 Errores de alineamiento
 
-Los errores de mapeo constituyen una de las principales causas de falsos positivos durante el llamado de variantes.
 
-Este problema ocurre principalmente cuando una lectura puede alinearse con alta similitud en múltiples regiones del genoma, situación frecuente en secuencias repetitivas, familias multigénicas o regiones altamente conservadas.
 
-Los alineadores asignan un valor de Mapping Quality (MAPQ) para estimar la probabilidad de que una lectura haya sido ubicada correctamente.
+
 
 ---
 
-## 4.11.4 Errores del genoma de referencia
 
-El genoma de referencia representa únicamente un individuo o ensamblaje específico de la especie y no necesariamente refleja toda la diversidad genética existente.
 
-Errores de ensamblaje, regiones faltantes, inversiones o secuencias incorrectamente ensambladas pueden provocar discrepancias sistemáticas entre las lecturas y la referencia.
-
----
-
-## 4.11.5 Cobertura insuficiente
-
-La profundidad de secuenciación determina el número de lecturas que cubren una determinada posición del genoma.
-
-Una cobertura baja disminuye considerablemente la confianza en la estimación del genotipo debido a que un pequeño número de errores experimentales puede confundirse con variantes verdaderas.
-
-Por el contrario, coberturas excesivamente altas pueden indicar la presencia de duplicados de PCR o regiones repetitivas.
-
----
-
-# 4.12 Fundamentos estadísticos del llamado de variantes
-
-Los primeros algoritmos de llamado de variantes utilizaban reglas simples basadas en el conteo de nucleótidos observados en cada posición. Sin embargo, este enfoque resultó insuficiente para analizar regiones con baja cobertura, errores de secuenciación o variantes complejas.
-
-Actualmente, prácticamente todos los llamadores modernos emplean modelos probabilísticos basados en inferencia bayesiana.
-
-Estos modelos integran simultáneamente la información proveniente de:
-
-- calidad de las bases;
-- calidad del alineamiento;
-- profundidad de cobertura;
-- frecuencia esperada de variantes;
-- distribución de alelos.
-
-El resultado final corresponde al genotipo con mayor probabilidad posterior.
-
----
 
 # 4.12.1 Calidad Phred
 
@@ -174,7 +67,7 @@ Q=-10\log_{10}(P_{error})
 donde:
 
 - **Q** corresponde a la calidad Phred.
-- **Perror** representa la probabilidad de error.
+- **P_error** representa la probabilidad de error.
 
 Por ejemplo:
 
@@ -185,6 +78,10 @@ Por ejemplo:
 | Q40 | 0.01 % |
 
 Debido a esta relación logarítmica, pequeñas diferencias en la puntuación Phred representan cambios importantes en la confiabilidad de las bases.
+
+
+
+
 
 ---
 
