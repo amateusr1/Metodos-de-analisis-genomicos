@@ -377,14 +377,33 @@ samtools index $OUT/SRR37254991.markdup.bam
 ```
 GATK Best Practices generalmente confía en el alineamiento de BWA-MEM y utiliza la información del MAPQ durante el llamado de variantes, por lo que no siempre recomienda un filtrado previo. Sin embargo, en muchos casos es común eliminar lecturas con MAPQ < 20 o MAPQ < 30 para reducir alineamientos ambiguos, especialmente en regiones repetitivas, antes de realizar el llamado de variantes.
 
-Una forma sencilla es de ver la distribución del MAPQ es con samtools stats:
+Una forma sencilla de ver la distribución del MAPQ es con samtools stats:
 
 ```
 samtools stats SRR31477438.sorted.markdup.bam > SRR31477438.stats
 
 ```
+## 4. Estadísticas del alineamiento - Calidad del mapeo
 
-  
+La calidad del alineamiento se evaluó mediante las estadísticas generadas por SAMtools flagstat, SAMtools stats y Picard MarkDuplicates. Para las tres muestras se obtuvo una tasa de alineamiento superior al 99.6 %, lo que indica alta calidad de las lecturas y buena colinearidad genómica entre las accesiones secuenciadas y el genoma de referencia Micro-Tom. La tasa de lecturas correctamente pareadas fue igualmente alta (96.48–97.77%), confirmando la integridad de los datos paired-end y la ausencia de contaminación significativa.
+
+La tasa de duplicación fue baja para todas las muestras (0.82–1.36%), lo que sugiere buena complejidad de las librerías y cobertura suficiente para la llamada de variantes. Los singletons representaron únicamente el 0,13 % del total de lecturas.
+
+### Estadisticas de alineamiento para la muestra 1 SRR31477438 — *Solanum lycopersicum* var. *cerasiforme* (SLC)
+
+| Métrica | Valor |
+|----------|------:|
+| Total de lecturas | 114,003,444 |
+| Lecturas primarias | 113,600,796 |
+| Lecturas mapeadas | 113,782,270 (99.81%) |
+| Lecturas primarias mapeadas | 113,379,622 (99.81%) |
+| Correctamente pareadas | 111,061,820 (97.77%) |
+| Singletons | 107,030 (0.09%) |
+| Duplicados marcados | 1,536,530 |
+| % duplicación (Picard) | 1.36% |
+| Tamaño estimado de librería | 2,101,507,605 |
+
+Para las demás muestras los resultados fueron practicamente identicos. 
 
 # Referencias
 
