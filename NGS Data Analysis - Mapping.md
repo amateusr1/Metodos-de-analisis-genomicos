@@ -284,6 +284,8 @@ Antes de realizar el alineamiento de las lecturas, el genoma de referencia debe 
 
 Se generaron tres índices complementarios: Índice de BWA-MEM2 (bwa-mem2 index): genera un conjunto de archivos auxiliares basados en el algoritmo Burrows–Wheeler Transform (BWT) y el FM-index. Índice FASTA de SAMtools (samtools faidx): crea un archivo con extensión .fai que almacena la posición de inicio, longitud y coordenadas de cada cromosoma o secuencia del genoma de referencia. Utilizado por herramientas posteriores. Diccionario de secuencias de GATK (CreateSequenceDictionary): genera un archivo .dict que contiene los nombres, longitudes y metadatos de cada secuencia presente en el genoma de referencia. Este archivo es requerido por GATK para verificar la consistencia entre el genoma de referencia y los archivos BAM durante etapas posteriores como el llamado de variantes.
 
+SAMtools es un conjunto de herramientas de línea de comandos diseñado para manipular y analizar archivos de alineamiento de secuencias en los formatos SAM y BAM, fundamental en los flujos de trabajo de secuenciación de nueva generación (NGS), por lo que a lo largo de los módulos se exploran varias de sus fucniones y opciones de ejecución.
+
 ```
 
 # Índice BWA-MEM2
@@ -403,7 +405,9 @@ La tasa de duplicación fue baja para todas las muestras (0.82–1.36%), lo que 
 | % duplicación (Picard) | 1.36% |
 | Tamaño estimado de librería | 2,101,507,605 |
 
-Para las demás muestras los resultados fueron practicamente identicos. 
+Las demás muestras mostraron métricas prácticamente idénticas, confirmando la consistencia del proceso de alineamiento.
+
+El alineamiento de lecturas constituye un paso esencial en la mayoría de los flujos de trabajo de secuenciación de nueva generación (NGS), debido a que establece la base sobre la cual se desarrollan los análisis posteriores. La calidad del mapeo influye directamente en la confiabilidad de aplicaciones como el llamado de variantes, la estimación de la cobertura, el análisis de expresión génica y la detección de variantes estructurales. En el siguiente módulo se describirá el proceso de llamado de variantes, desde la generación de los archivos VCF hasta la identificación y caracterización de los polimorfismos presentes en las muestras.
 
 # Referencias
 
