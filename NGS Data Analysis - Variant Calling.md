@@ -32,9 +32,8 @@ La escala Phred representa logarítmicamente la probabilidad de error durante la
 
 ```
 
-\[
+
 Q=-10\log_{10}(P_{error})
-\]
 
 ```
 
