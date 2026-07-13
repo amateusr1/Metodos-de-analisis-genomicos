@@ -26,19 +26,40 @@ El resultado final del llamado de variantes corresponde al genotipo con mayor pr
 
 Las principales fuentes de error durante el llamado de variantes pueden clasificarse en errores experimentales, errores computacionales y errores derivados del propio genoma de referencia. El reconocimiento y control de estos factores constituye uno de los aspectos más importantes del análisis bioinformático. 
 
-Durante la síntesis y detección de nucleótidos pueden producirse errores en la identificación de las bases. Estos errores aumentan generalmente hacia los extremos de las lecturas debido a la disminución progresiva de la intensidad de fluorescencia y al incremento del ruido instrumental. Cada base recibe una puntuación de calidad Phred que representa la probabilidad de que dicha base haya sido identificada incorrectamente. Una baja calidad de secuenciación incrementa la probabilidad de detectar falsos SNPs o falsos indels.
+1. Durante la síntesis y detección de nucleótidos pueden producirse errores en la identificación de las bases. Estos errores aumentan generalmente hacia los extremos de las lecturas debido a la disminución progresiva de la intensidad de fluorescencia y al incremento del ruido instrumental. Cada base recibe una puntuación de calidad Phred que representa la probabilidad de que dicha base haya sido identificada incorrectamente. Una baja calidad de secuenciación incrementa la probabilidad de detectar falsos SNPs o falsos indels. Estos errores se pueden controlar durante el trimming de lecturas de baja calidad con herramientas como Trimmomatic, fastp, o el altamente recomendado módulo clean de Captus (https://edgardomortiz.github.io/captus.docs/) y filtrando sitios con puntuación QUAL baja en el VCF final. Es posible que sea necesario cortar los extremos de las lecturas.
 
-Estos errores se controlan mediante trimming de lecturas de baja calidad con herramientas como Trimmomatic, fastp, o el módulo clean de Captus (https://edgardomortiz.github.io/captus.docs/) altamente recomendado y filtrando sitios con puntuación QUAL baja en el VCF final.
+La escala Phred representa logarítmicamente la probabilidad de error durante la identificación de una base. Su definición matemática es:
 
+```
 
+\[
+Q=-10\log_{10}(P_{error})
+\]
 
-La amplificación mediante PCR puede introducir mutaciones artificiales que posteriormente son interpretadas como variantes reales. Además, la sobreamplificación puede originar múltiples copias idénticas del mismo fragmento de ADN, conocidas como duplicados de PCR. Estos duplicados generan una representación artificialmente elevada de determinados alelos y pueden sesgar la estimación del genotipo. En el módulo anterior explico como realizar el marcado de duplicados mediante Picard MarkDuplicates. 
+```
 
-Los errores de mapeo constituyen una de las principales causas de falsos positivos durante el llamado de variantes. Este problema ocurre principalmente cuando una lectura puede alinearse con alta similitud en múltiples regiones del genoma, situación frecuente en secuencias repetitivas, familias multigénicas o regiones altamente conservadas. Los alineadores asignan un valor de Mapping Quality (MAPQ) para estimar la probabilidad de que una lectura haya sido ubicada correctamente. 
+donde:
 
-El genoma de referencia representa únicamente un individuo o ensamblaje específico de la especie y no necesariamente refleja toda la diversidad genética existente. Errores de ensamblaje, regiones faltantes, inversiones o secuencias incorrectamente ensambladas pueden provocar discrepancias sistemáticas entre las lecturas y la referencia.
+- **Q** corresponde a la calidad Phred.
+- **P_error** representa la probabilidad de error.
 
-La profundidad de secuenciación determina el número de lecturas que cubren una determinada posición del genoma. Una cobertura baja disminuye considerablemente la confianza en la estimación del genotipo debido a que un pequeño número de errores experimentales puede confundirse con variantes verdaderas. Por el contrario, coberturas excesivamente altas pueden indicar la presencia de duplicados de PCR o regiones repetitivas.
+Por ejemplo:
+
+| Calidad | Probabilidad de error |
+|---------|-----------------------|
+| Q20 | 1 % |
+| Q30 | 0.1 % |
+| Q40 | 0.01 % |
+
+Debido a esta relación logarítmica, pequeñas diferencias en la puntuación Phred representan cambios importantes en la confiabilidad de las bases.
+
+2. La amplificación mediante PCR puede introducir mutaciones artificiales que posteriormente son interpretadas como variantes reales. Además, la sobreamplificación puede originar múltiples copias idénticas del mismo fragmento de ADN, conocidas como duplicados de PCR. Estos duplicados generan una representación artificialmente elevada de determinados alelos y pueden sesgar la estimación del genotipo. En el módulo anterior explico como realizar el marcado de duplicados mediante Picard MarkDuplicates. 
+
+3. Los errores de mapeo constituyen una de las principales causas de falsos positivos durante el llamado de variantes. Este problema ocurre principalmente cuando una lectura puede alinearse con alta similitud en múltiples regiones del genoma, situación frecuente en secuencias repetitivas, familias multigénicas o regiones altamente conservadas. Los alineadores asignan un valor de Mapping Quality (MAPQ) para estimar la probabilidad de que una lectura haya sido ubicada correctamente. Se filtran aplicando un umbral mínimo de MAPQ (típicamente MAPQ ≥ 20) durante el llamado de variantes, y excluyendo lecturas que mapean en múltiples posiciones del genoma (multimappers).
+
+4. El genoma de referencia representa únicamente un individuo o ensamblaje específico de la especie y no necesariamente refleja toda la diversidad genética existente. Errores de ensamblaje, regiones faltantes, inversiones o secuencias incorrectamente ensambladas pueden provocar discrepancias sistemáticas entre las lecturas y la referencia. Los errores asociados a la referencia se mitigan usando genomas de alta calidad, y en poblaciones muy divergentes de la referencia se recomienda el uso de grafos de pangenoma (pangenome graphs) como alternativa al mapeo lineal.
+
+5. La profundidad de secuenciación determina el número de lecturas que cubren una determinada posición del genoma. Una cobertura baja disminuye considerablemente la confianza en la estimación del genotipo debido a que un pequeño número de errores experimentales puede confundirse con variantes verdaderas. Por el contrario, coberturas excesivamente altas pueden indicar la presencia de duplicados de PCR o regiones repetitivas. Esto se puede controlar filtrando sitios por profundidad mínima (DP ≥ 10) y máxima (DP ≤ media + 2×SD) en el VCF. 
 
 ---
 
