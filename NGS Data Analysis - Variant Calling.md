@@ -68,7 +68,9 @@ El primer paso consiste en calcular, para cada genotipo posible, la probabilidad
 
 **Paso 2 — Inferencia bayesiana: incorporar conocimiento previo**
 
-Solo con el Genotype Likelihood no es suficiente para definir el genotipo. En el caso de una posición con solo 2 lecturas, una A y una B. El likelihood favorecería al heterocigoto AB, pero con solo 2 lecturas no se puede descartar que sea un homocigoto AA con un error de secuenciación en una lectura. El teorema de Bayes combina el likelihood con un prior — un conocimiento previo sobre qué tan probable es cada genotipo antes de mirar las lecturas:
+Solo con el Genotype Likelihood no es suficiente para definir el genotipo. En el caso de una posición con solo 2 lecturas, una A y una B. El likelihood favorecería al heterocigoto AB, pero con solo 2 lecturas no se puede descartar que sea un homocigoto AA con un error de secuenciación en una lectura.
+
+La inferencia bayesiana constituye el fundamento estadístico de herramientas como GATK, FreeBayes y bcftools. El objetivo consiste en calcular la probabilidad del genotipo considerando toda la evidencia disponible. El teorema de Bayes combina el likelihood con un prior — un conocimiento previo sobre qué tan probable es cada genotipo antes de mirar las lecturas:
 
 El genotipo seleccionado es aquel con la mayor probabilidad posterior. Los priors representan el conocimiento biológico disponible antes del análisis. Dependiendo del algoritmo y del contexto pueden construirse a partir de:
 
@@ -79,35 +81,21 @@ El genotipo seleccionado es aquel con la mayor probabilidad posterior. Los prior
 
 En regiones de baja cobertura, el likelihood tiene mucha incertidumbre. Un prior bien calibrado actúa como un "ancla" que evita llamar variantes falsas. Por ejemplo, si la tasa de heterocigosidad esperada es 0.001 (1 en 1,000 posiciones), el prior para una variante es bajo. Con solo 2 lecturas discordantes, la probabilidad posterior de una variante real sigue siendo baja aunque el likelihood la favorezca. Con 20 lecturas discordantes, la evidencia del likelihood supera al prior y se llama la variante.
 
-**Paso 3 — Genotipado conjunto: usar información de múltiples muestras**
+**Paso 3 — Genotipado conjunto**
 
-Cuando varias muestras son analizadas simultáneamente (como en el pipeline de GATK con GenomicsDBImport + GenotypeGVCFs), la estimación de los genotipos se fortalece incorporando información poblacional.
+Cuando varias muestras son analizadas simultáneamente, la estimación de los genotipos se fortalece incorporando información poblacional. El supuesto más utilizado es el equilibrio de Hardy-Weinberg (HWE). Si la frecuencia del alelo A en la población es p y la del alelo B es q = 1 - p, las frecuencias esperadas de los genotipos son:
 
-El supuesto más utilizado es el equilibrio de Hardy-Weinberg (HWE). Si la frecuencia del alelo A en la población es p y la del alelo B es q = 1 - p, las frecuencias esperadas de los genotipos son:
+```
+P(AA)=p2    P(AB)=2pq    P(BB)=q2
+```
 
-P(AA)=p2P(AB)=2pqP(BB)=q2P(AA) = p^2 \qquad P(AB) = 2pq \qquad P(BB) = q^2P(AA)=p2P(AB)=2pqP(BB)=q2
 Estas frecuencias genotípicas se usan como priors en el modelo bayesiano conjunto. La clave es que las frecuencias alélicas se estiman a partir de todas las muestras simultáneamente, lo que tiene dos ventajas importantes:
 
-1. Mayor sensibilidad para variantes raras
-Si un alelo B aparece en solo 1 de 20 individuos, su frecuencia estimada es baja pero no cero. Esto permite detectar variantes raras que serían descartadas si se analizara cada muestra por separado.
+1. Mayor sensibilidad para variantes raras: Si un alelo B aparece en solo 1 de 20 individuos, su frecuencia estimada es baja pero no cero. Esto permite detectar variantes raras que serían descartadas si se analizara cada muestra por separado.
 
-2. Mayor precisión en muestras de baja cobertura
-Si una muestra tiene solo 5 lecturas en una posición pero otras 19 muestras tienen 30 lecturas y todas muestran el mismo alelo B con alta frecuencia, la información poblacional refuerza la llamada de variante incluso en la muestra con baja cobertura.
+2. Mayor precisión en muestras de baja cobertura: Si una muestra tiene solo 5 lecturas en una posición pero otras 19 muestras tienen 30 lecturas y todas muestran el mismo alelo B con alta frecuencia, la información poblacional refuerza la llamada de variante incluso en la muestra con baja cobertura.
 
-
-En resumen: el genotipado conjunto aprovecha que todos los individuos de una población comparten historia evolutiva, y usa esa información para mejorar la precisión del llamado de variantes en cada muestra individual.
-
-
-
-
-
-
-
-
-
-
-
-¿Cómo implementa GATK este modelo?
+## ¿Cómo implementa GATK este modelo?
 
 GATK implementa este marco estadístico en tres herramientas encadenadas:
 
@@ -128,9 +116,8 @@ GenotypeGVCFs (genotipado conjunto)
     Asigna genotipos MAP a cada muestra
     Reporta QUAL, GQ (Genotype Quality) y PL (Phred-scaled likelihoods)
 
-Los campos más importantes del VCF resultante son:
 
-CampoDescripciónQUALCalidad del sitio variante: -10 × log₁₀ P(no es variante)GQCalidad del genotipo individual: -10 × log₁₀ P(genotipo incorrecto)PLLikelihoods escalados en Phred para cada genotipo posible (AA, AB, BB)DPProfundidad de cobertura en esa posición para esa muestraADProfundidad por alelo (cuántas lecturas dicen A, cuántas dicen B)
+
 
 ## Genotype Likelihood
 
