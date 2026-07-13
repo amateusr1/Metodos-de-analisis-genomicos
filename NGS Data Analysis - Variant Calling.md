@@ -31,10 +31,7 @@ Las principales fuentes de error durante el llamado de variantes pueden clasific
 La escala Phred representa logarítmicamente la probabilidad de error durante la identificación de una base. Su definición matemática es:
 
 ```
-
-
 Q=-10\log_{10}(P_{error})
-
 ```
 
 donde:
