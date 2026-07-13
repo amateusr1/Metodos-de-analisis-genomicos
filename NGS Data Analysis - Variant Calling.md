@@ -22,7 +22,7 @@ La determinación correcta del genotipo depende de algunos de estos mismos facto
 
 El resultado final del llamado de variantes corresponde al genotipo con mayor probabilidad posterior.
 
-# Manejo de fuentes de error en el llamado de variantes 
+## Manejo de fuentes de error en el llamado de variantes 
 
 Las principales fuentes de error durante el llamado de variantes pueden clasificarse en errores experimentales, errores computacionales y errores derivados del propio genoma de referencia. El reconocimiento y control de estos factores constituye uno de los aspectos más importantes del análisis bioinformático. 
 
@@ -58,75 +58,15 @@ Debido a esta relación logarítmica, pequeñas diferencias en la puntuación Ph
 5. La profundidad de secuenciación determina el número de lecturas que cubren una determinada posición del genoma. Una cobertura baja disminuye considerablemente la confianza en la estimación del genotipo debido a que un pequeño número de errores experimentales puede confundirse con variantes verdaderas. Por el contrario, coberturas excesivamente altas pueden indicar la presencia de duplicados de PCR o regiones repetitivas. Esto se puede controlar filtrando sitios por profundidad mínima (DP ≥ 10) y máxima (DP ≤ media + 2×SD) en el VCF. 
 
 ---
+# Fundamento estadístico del llamado de variantes
 
+## Genotype Likelihood
 
+El primer paso del llamado de variantes consiste en calcular la probabilidad de observar las lecturas obtenidas suponiendo que el individuo posee un determinado genotipo. Esta probabilidad recibe el nombre de **Genotype Likelihood**. La probabilidad conjunta de todas las lecturas permite estimar cuál es el genotipo más compatible con los datos experimentales.
 
+# Inferencia bayesiana
 
-
-
----
-
-
-
-
-# 4.12.1 Calidad Phred
-
-La calidad de cada nucleótido se expresa mediante la escala Phred.
-
-Esta escala representa logarítmicamente la probabilidad de error durante la identificación de una base.
-
-Su definición matemática es:
-
-\[
-Q=-10\log_{10}(P_{error})
-\]
-
-donde:
-
-- **Q** corresponde a la calidad Phred.
-- **P_error** representa la probabilidad de error.
-
-Por ejemplo:
-
-| Calidad | Probabilidad de error |
-|---------|-----------------------|
-| Q20 | 1 % |
-| Q30 | 0.1 % |
-| Q40 | 0.01 % |
-
-Debido a esta relación logarítmica, pequeñas diferencias en la puntuación Phred representan cambios importantes en la confiabilidad de las bases.
-
-
-
-
-
----
-
-# 4.12.2 Genotype Likelihood
-
-El primer paso del llamado de variantes consiste en calcular la probabilidad de observar las lecturas obtenidas suponiendo que el individuo posee un determinado genotipo.
-
-Esta probabilidad recibe el nombre de **Genotype Likelihood**.
-
-Por ejemplo, para un organismo diploide se evalúan generalmente tres posibilidades:
-
-- Homocigoto referencia (AA)
-- Heterocigoto (AB)
-- Homocigoto alternativo (BB)
-
-Cada lectura aporta evidencia a favor o en contra de cada uno de estos genotipos.
-
-La probabilidad conjunta de todas las lecturas permite estimar cuál es el genotipo más compatible con los datos experimentales.
-
----
-
-# 4.12.3 Inferencia bayesiana
-
-La inferencia bayesiana constituye el fundamento estadístico de herramientas como GATK, FreeBayes y bcftools.
-
-El objetivo consiste en calcular la probabilidad del genotipo considerando toda la evidencia disponible.
-
-El modelo general puede expresarse como:
+La inferencia bayesiana constituye el fundamento estadístico de herramientas como GATK, FreeBayes y bcftools. El objetivo consiste en calcular la probabilidad del genotipo considerando toda la evidencia disponible. El modelo general puede expresarse como:
 
 \[
 P(Genotipo|Datos)\propto P(Datos|Genotipo)\times P(Genotipo)
