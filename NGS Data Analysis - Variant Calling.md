@@ -95,10 +95,15 @@ Estas frecuencias genotípicas se usan como priors en el modelo bayesiano conjun
 
 2. Mayor precisión en muestras de baja cobertura: Si una muestra tiene solo 5 lecturas en una posición pero otras 19 muestras tienen 30 lecturas y todas muestran el mismo alelo B con alta frecuencia, la información poblacional refuerza la llamada de variante incluso en la muestra con baja cobertura.
 
+---
+
 ## ¿Cómo implementa GATK este modelo?
 
-GATK implementa este marco estadístico en tres herramientas encadenadas:
+GATK (Genome Analysis Toolkit) es un conjunto de herramientas bioinformáticas desarrollado por el Broad Institute (MIT/Harvard) para el análisis de datos de secuenciación de alto rendimiento, principalmente orientado a la detección de variantes genómicas (SNPs, INDELs, variantes estructurales). Es el estándar en genómica humana y se ha extendido ampliamente a otros organismos. Su pipeline de Best Practices es el más citado y reproducido en la literatura de genómica de poblaciones.
 
+GATK implementa tres herramientas principales encadenadas: 
+
+```
 HaplotypeCaller (por muestra)
     ↓
     Calcula Genotype Likelihoods para cada posición
@@ -115,6 +120,7 @@ GenotypeGVCFs (genotipado conjunto)
     Calcula probabilidades posteriores
     Asigna genotipos MAP a cada muestra
     Reporta QUAL, GQ (Genotype Quality) y PL (Phred-scaled likelihoods)
+```
 
 
 
