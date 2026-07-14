@@ -224,172 +224,58 @@ Una vez finalizado el llamado y filtrado de variantes, los resultados se almacen
   
 </p>
 
----
+Un archivo VCF registra la posición de cada variante con respecto a un genoma de referencia e incluye información detallada sobre los alelos observados, la calidad del llamado, las métricas de filtrado, diversas anotaciones y los genotipos de una o varias muestras. A diferencia de un archivo FASTA o BAM, que almacenan secuencias o alineamientos, un VCF resume únicamente las posiciones donde existe información relevante para el análisis de variantes.
 
-## 4.18.1 Estructura general
+La estructura del archivo está organizada en tres secciones principales:
 
-Un archivo VCF está compuesto por dos secciones principales.
+Metainformación: corresponde a las primeras líneas del archivo, precedidas por el símbolo ##. Estas líneas describen la versión del formato VCF, el genoma de referencia utilizado, los programas empleados durante el llamado de variantes y la definición de las anotaciones presentes en el archivo, como los campos INFO, FORMAT y FILTER.
 
-### Cabecera
+Cabecera: es la última línea que comienza con el carácter #. Define el nombre de las columnas del archivo y, cuando se trata de un VCF multimuestreo, incluye el identificador de cada muestra analizada.
 
-Incluye:
-
-- versión del formato;
-- programa utilizado;
-- filtros aplicados;
-- definición de todos los campos INFO y FORMAT;
-- información del genoma de referencia.
+Registros de variantes: cada línea posterior representa una variante detectada en una posición específica del genoma. Además de indicar el cromosoma, la posición y los alelos de referencia y alternativos, cada registro almacena información sobre la calidad del llamado, los filtros aplicados, diversas anotaciones calculadas durante el análisis y los genotipos de todas las muestras.
 
 ---
 
-### Registros
-
-Cada línea representa una variante individual.
-
-Los campos obligatorios son:
-
-| Campo | Descripción |
-|--------|-------------|
-| CHROM | Cromosoma |
-| POS | Posición |
-| ID | Identificador |
-| REF | Alelo de referencia |
-| ALT | Alelo alternativo |
-| QUAL | Calidad |
-| FILTER | Estado del filtrado |
-| INFO | Información adicional |
-| FORMAT | Campos del genotipo |
-| SAMPLE | Información por individuo |
-
----
-
-## 4.18.2 Campo INFO
-
-El campo INFO almacena información global de la variante.
-
-Algunos parámetros frecuentes son:
-
-- AC: número de alelos alternativos;
-- AF: frecuencia del alelo alternativo;
-- AN: número total de alelos;
-- DP: profundidad total;
-- MQ: calidad promedio del alineamiento;
-- QD: calidad normalizada por profundidad.
-
----
-
-## 4.18.3 Campo FORMAT
-
-Describe la información reportada para cada individuo.
-
-Entre los campos más importantes se encuentran:
-
-### GT
-
-Genotipo.
-
-Ejemplos:
-
-```
-0/0
-```
-
-Homocigoto referencia.
-
-```
-0/1
-```
-
-Heterocigoto.
-
-```
-1/1
-```
-
-Homocigoto alternativo.
-
----
-
-### AD
-
-Número de lecturas que soportan cada alelo.
-
-Ejemplo:
-
-```
-18,17
-```
-
-18 lecturas apoyan el alelo de referencia y 17 el alternativo.
-
----
-
-### DP
-
-Profundidad total de cobertura para ese individuo.
-
----
-
-### GQ
-
-Genotype Quality.
-
-Representa la confianza estadística del genotipo asignado.
-
----
-
-### PL
-
-Likelihoods del genotipo expresadas en escala Phred.
-
-Estos valores permiten comparar probabilísticamente los diferentes genotipos posibles.
-
----
 
 # 4.19 Herramientas alternativas para el llamado de variantes
 
-Aunque GATK constituye uno de los estándares actuales, existen otros llamadores ampliamente utilizados dependiendo del tipo de datos y los objetivos del estudio.
+Aunque GATK HaplotypeCaller constituye uno de los estándares actuales para el llamado de variantes en datos de secuenciación masiva, existen otras herramientas ampliamente utilizadas. Cada una implementa modelos estadísticos y estrategias de análisis diferentes, por lo que su rendimiento puede variar dependiendo del organismo, la profundidad de secuenciación, la ploidía y los objetivos del estudio.
 
 ## bcftools
 
-bcftools utiliza modelos probabilísticos derivados de SAMtools y destaca por:
+bcftools es la evolución del antiguo llamador de variantes de SAMtools y se caracteriza por implementar un modelo probabilístico relativamente simple basado en las probabilidades de genotipo (genotype likelihoods). A partir del archivo BAM, evalúa la evidencia aportada por las lecturas en cada posición del genoma y estima el genotipo más probable utilizando un modelo bayesiano.
 
-- rapidez;
-- bajo consumo de memoria;
-- facilidad de uso;
-- excelente integración con SAMtools.
+A diferencia de GATK HaplotypeCaller, bcftools no realiza un ensamblaje local de haplotipos. El algoritmo analiza cada posición del genoma prácticamente de manera independiente, utilizando la información proveniente del alineamiento existente. Esto reduce considerablemente el tiempo de ejecución y el consumo de memoria, aunque puede disminuir la precisión en regiones complejas o en la detección de inserciones y deleciones (indels).
 
-Es ampliamente utilizado para proyectos pequeños y análisis exploratorios.
+Debido a su rapidez y facilidad de uso, bcftools es ampliamente empleado en proyectos pequeños, análisis exploratorios, organismos no modelo y como herramienta de control de calidad o validación de variantes.
 
 ---
 
 ## FreeBayes
 
-FreeBayes emplea un modelo basado en haplotipos que permite detectar variantes complejas y analizar organismos con diferentes niveles de ploidía.
+FreeBayes utiliza un enfoque basado en haplotipos en lugar de evaluar cada variante de forma completamente independiente. El algoritmo identifica conjuntos de variantes cercanas presentes en las mismas lecturas y estima la probabilidad de los diferentes haplotipos utilizando un modelo bayesiano.
 
-Resulta particularmente útil en estudios de genética de poblaciones y organismos no modelo.
+Aunque comparte con HaplotypeCaller la idea de considerar haplotipos completos, FreeBayes no realiza un ensamblaje local mediante grafos de De Bruijn. En su lugar, construye los haplotipos directamente a partir de las combinaciones de variantes observadas en las lecturas alineadas. Esto simplifica el proceso y reduce el costo computacional, aunque puede ser menos robusto en regiones altamente repetitivas o con variantes estructurales complejas.
+
+Una de sus principales ventajas es que permite trabajar de manera natural con organismos de ploidía variable (diploides, poliploides o mezclas de individuos), así como con poblaciones microbianas o muestras con múltiples haplotipos. Por esta razón, FreeBayes es ampliamente utilizado en estudios de genética de poblaciones, evolución y organismos no modelo.
 
 ---
 
 ## DeepVariant
 
-DeepVariant, desarrollado por Google, incorpora técnicas de aprendizaje profundo para el llamado de variantes.
+DeepVariant, desarrollado por Google, representa un cambio importante en el enfoque tradicional del llamado de variantes. En lugar de construir un modelo estadístico basado en supuestos explícitos sobre los errores de secuenciación, utiliza aprendizaje profundo (deep learning) para aprender directamente los patrones presentes en los datos.
 
-El algoritmo transforma los alineamientos en representaciones similares a imágenes y utiliza redes neuronales convolucionales para clasificar variantes.
+El algoritmo transforma el alineamiento de las lecturas alrededor de cada posible variante en una representación similar a una imagen (pileup image), donde cada fila corresponde a una lectura y diferentes canales codifican información como las bases, las calidades Phred, la calidad del alineamiento, la orientación de la hebra y otras características relevantes. Estas imágenes son analizadas por una red neuronal convolucional (CNN) entrenada con millones de variantes previamente validadas.
 
-Diversos estudios han demostrado que DeepVariant alcanza precisiones comparables o superiores a los métodos tradicionales, especialmente en regiones genómicas complejas.
+En lugar de calcular explícitamente probabilidades mediante modelos bayesianos o algoritmos como PairHMM, la red neuronal aprende automáticamente las características que distinguen una variante verdadera de un error de secuenciación. Como resultado, DeepVariant suele alcanzar una precisión muy elevada, especialmente en regiones difíciles del genoma y en la detección de SNPs e indels. Sin embargo, requiere modelos previamente entrenados para cada tecnología de secuenciación (Google diseño modelos para Illumina, PacBio HiFi, Oxford Nanopore) y demanda mayores recursos computacionales, particularmente el uso de GPU para obtener un rendimiento óptimo.
 
----
+Aunque diversos estudios han demostrado que DeepVariant puede alcanzar una precisión comparable o incluso superior a la de GATK HaplotypeCaller en la detección de SNPs e indels, GATK continúa siendo el estándar de referencia en numerosos proyectos de investigación debido a que GATK no es únicamente un llamador de variantes, sino un ecosistema completo de herramientas para el preprocesamiento de datos, recalibración de la calidad de bases (BQSR), llamado de variantes, genotipado conjunto, filtrado (Hard Filtering y VQSR) y análisis de cohortes.
 
-## Comparación general
+Por eso, actualmente muchos proyectos aprovechan lo mejor de ambos mundos: utilizan DeepVariant para generar los llamados iniciales por muestra y posteriormente realizan el genotipado conjunto y otros análisis poblacionales con herramientas del ecosistema GATK (o con GLnexus, que está diseñado para combinar llamadas de DeepVariant). De esta forma se obtiene una alta precisión sin perder la capacidad de analizar grandes cohortes de individuos.
 
-| Herramienta | Modelo | Ventajas | Limitaciones |
-|-------------|---------|----------|--------------|
-| GATK | Bayesiano + PairHMM | Muy alta precisión | Mayor demanda computacional |
-| bcftools | Bayesiano | Muy rápido | Menor sensibilidad en variantes complejas |
-| FreeBayes | Haplotipos | Flexible para distintas ploidías | Más lento en cohortes grandes |
-| DeepVariant | Aprendizaje profundo | Muy alta precisión | Requiere GPU y mayor capacidad computacional |
+DeepVariant es completamente gratuito y de código abierto. El código fuente y las versiones oficiales se encuentran en GitHub (https://github.com/google/deepvariant?utm_source) 
 
 ---
+
 
 
