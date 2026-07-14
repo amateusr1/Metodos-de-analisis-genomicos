@@ -277,5 +277,126 @@ DeepVariant es completamente gratuito y de código abierto. El código fuente y 
 
 ---
 
+# Un flujo de trabajo completo para el llamado de variantes con GATK
+
+En este módulo se procesaron tres muestras de *Solanum sección lycopersicum* secuenciadas por WGS con Illumina: una accesión de *S. lycopersicum var. cerasiforme* (SLC; SRR31477438), una accesión de *S. lycopersicum var. lycopersicum* (LA1924; SRR38359005) y una accesión de *S. pimpinellifolium* (SRR37254991), mapeadas contra el genoma de referencia del tomate cultivado (*S. lycopersicum var. lycopersicum* Micro-Tom, ensamblaje SLM_r2.1 (GCF_036512215.1; 832.8 Mb). Las lecturas WGS de las muestras fueron descargadas desde la base de datos SRA del NCBI usando fasterq-dump, en formato FASTA.
+
+Todos los análisis se ejecutaron en el clúster de cómputo HPC perteneciente a la Facultad de Ciencias de la Universidad Nacional de Colombia mediante scripts SLURM, utilizando el gestor de paquetes Conda y entornos virtuales asociados. La instalación y resolución de dependencias se ejecuto a través de Anaconda y Miniconda.
+
+---
+
+## Generación de archivos VCF de AllSites mediante GATK
+
+Se utilizo la guía para generar archivos VCF de AllSites facilitada por Pixy utilizando GATK. Pixy es una herramienta de línea de comandos que calcula π, d xy , F ST , θ de Watterson y D de Tajima a partir de un archivo VCF. A diferencia de la mayoría de las herramientas que calculan estas estadísticas, pixy produce estimaciones insesgadas en presencia de datos faltantes (https://pixy.readthedocs.io/en/latest/about.html).
+
+GATK recomienda identificar primero las variantes por muestra utilizando HaplotypeCaller en modo GVCF (Paso 1 a continuación). A continuación, GenomicsDBImport consolida la información de los archivos GVCF de todas las muestras para mejorar la eficiencia del genotipado conjunto (Paso 2 a continuación). En el tercer paso, GenotypeGVCFs genera un conjunto de SNP e INDEL identificados conjuntamente, listos para su filtrado y análisis. 
+
+**NOTA:** ``--all-sites`` is not compatible with VQSR. The 0/0 (invariant) records emitted by GenotypeGVCFs --all-sites typically carry only DP in the INFO field and lack the annotations that VariantRecalibrator relies on (QD, FS, SOR, MQ, MQRankSum, ReadPosRankSum, InbreedingCoeff). For pixy input you should hard-filter instead, and — per the warning at the top of this page — filter variant and invariant sites separately before concatenating them back together.
+
+---
+Una vez completado el preprocesamiento de los archivos BAM. Se procede al llamado de variantes para cada muestra utilizando HaplotypeCaller. En esta etapa, cada individuo se analiza de forma independiente para identificar SNPs e indels mediante el ensamblaje local de haplotipos y el algoritmo PairHMM. En lugar de generar directamente un archivo VCF convencional, HaplotypeCaller se ejecuta en modo GVCF mediante la opción -ERC GVCF. Este formato conserva información tanto de los sitios variantes como de los sitios no variantes (bloques de referencia), permitiendo posteriormente realizar el genotipado conjunto (Joint Genotyping) de múltiples muestras sin necesidad de repetir el llamado de variantes.
+
+```
+# Cargar del módulo de conda
+module load envs/anaconda3
+source /scratchsan1/anaconda3/etc/profile.d/conda.sh
+conda activate gatk-4.6.2
+
+export REF="/scratchsan/amateusr/ref_genome_tomate/GCF_036512215.1_SLM_r2.1_genomic.fna"
+export OUT="/scratchsan/amateusr/outs"
+
+# ── Paso 1: HaplotypeCaller por cada muestra
+
+gatk --java-options "-Xmx4G" HaplotypeCaller \
+    -R $REF \
+    -I $OUT/SRR31477438.markdup.bam \
+    -O $OUT/SRR31477438.g.vcf.gz \
+    -ERC GVCF \
+    --native-pair-hmm-threads 8
+
+# Se mantuvieron los mismos parametros para cada una de las tres muestras
+
+```
+Para cada muestra se obtiene un archivo:
+
+SRR31477438.g.vcf.gz
+SRR38359005.g.vcf.gz
+SRR37254991.g.vcf.gz
+
+Estos archivos contienen las probabilidades de genotipo calculadas para todas las posiciones del genoma y constituyen la entrada para la etapa de Joint Genotyping, en la cual se combinará la información de todas las muestras para generar un único archivo VCF multimuestreo con los genotipos finales.
+
+---
+
+Una vez generado el archivo GVCF para cada muestra, el siguiente paso consiste en consolidarlos mediante la herramienta GenomicsDBImport. Esta herramienta no realiza el genotipado conjunto ni modifica los genotipos previamente calculados. Su función es importar la información contenida en múltiples archivos GVCF y almacenarla en una base de datos GenomicsDB, una estructura optimizada para acceder de manera eficiente a la información genómica durante el proceso de Joint Genotyping.
+
+Para realizar la importación, GenomicsDBImport requiere especificar los intervalos genómicos que serán procesados mediante la opción -L. Estos intervalos pueden corresponder a cromosomas completos, regiones específicas o, como en este ejemplo, a todos los contigs presentes en el genoma de referencia. El archivo de intervalos se genera automáticamente a partir del índice FASTA (.fai) utilizando el siguiente comando:
+
+```
+
+awk '{print $1":1-"$2}' $REF.fai > $OUT/intervals.list
+
+```
+
+Este comando extrae el nombre y la longitud de cada contig del archivo índice y construye un intervalo que abarca completamente cada secuencia del genoma de referencia. Posteriormente, todos los archivos GVCF son importados a la base de datos GenomicsDB:
+
+```
+
+gatk --java-options "-Xmx4G" GenomicsDBImport \
+    -V $OUT/SRR31477438.g.vcf.gz \
+    -V $OUT/SRR38359005.g.vcf.gz \
+    -V $OUT/SRR37254991.g.vcf.gz \
+    --genomicsdb-workspace-path $OUT/allsamples_genomicsdb \
+    -L $OUT/intervals.list
+
+```
+
+La ejecución no produce un archivo VCF, sino un directorio denominado:
+
+allsamples_genomicsdb/
+
+Este directorio contiene la base de datos GenomicsDB, en la cual la información de todas las muestras queda organizada por posiciones genómicas. Esta estructura permite que la siguiente herramienta, GenotypeGVCFs, consulte rápidamente la información de cada región del genoma sin tener que abrir y recorrer todos los archivos GVCF de forma independiente.
+
+---
+
+Una vez consolidados los archivos GVCF en la base de datos GenomicsDB, se realiza el genotipado conjunto (Joint Genotyping) utilizando la herramienta GenotypeGVCFs. GenotypeGVCFs consulta la información contenida en GenomicsDB, integra simultáneamente la evidencia de todas las muestras y aplica un modelo bayesiano para identificar los alelos presentes en cada posición del genoma y asignar el genotipo más probable a cada individuo.
+
+El comando utilizado fue:
+
+```
+gatk --java-options "-Xmx4G" GenotypeGVCFs \
+    -R $REF \
+    -V gendb://$OUT/allsamples_genomicsdb \
+    --all-sites \
+    -L $OUT/intervals.list \
+    -O $OUT/allsamples_allsites.vcf.gz
+
+```
+
+La opción --all-sites fue utilizada para generar un VCF que conserva tanto los sitios variantes como los invariantes, requisito indispensable para el cálculo correcto de estadísticas como la diversidad nucleotídica (π) y la divergencia entre poblaciones (d<sub>XY</sub>) mediante la herramienta Pixy. A diferencia de otros programas, Pixy utiliza explícitamente la información de los sitios invariantes para estimar el número total de posiciones comparables entre individuos, evitando el sesgo que se produce cuando únicamente se analizan posiciones polimórficas.
+
+Archivo generado
+
+Como resultado se obtiene un archivo:
+
+allsamples_allsites.vcf.gz
+
+Se identificaron 8,729,943 SNPs en el VCF conjunto de las muestras sobre un genoma de aproximadamente 833 Mb, lo que corresponde a una densidad de 10.5 SNPs por kb. Este valor es consistente con la divergencia genética esperada entre una accesiones silvestres de Solanum sección lycopersicum y una variedad cultivada de S. lycopersicum var lycopersicum. La elevada cantidad de polimorfismos refleja la acumulación de diferencias genéticas entre los linajes a lo largo de su historia evolutiva. Aunque la domesticación del tomate produjo una reducción de la diversidad genética mediante cuellos de botella poblacionales y selección artificial, esta constituye solo uno de los procesos responsables de la divergencia observada. La variación detectada también es consecuencia de la historia evolutiva previa de las poblaciones silvestres, la acumulación de mutaciones, la deriva genética y los procesos de selección natural y artificial que han actuado sobre ambos linajes.
+
+---
+
+El conjunto inicial de variantes aún puede incluir falsos positivos, por esta razón, en el siguiente módulo se abordará el filtrado del archivo VCF, empleando criterios de calidad para conservar únicamente variantes de alta confianza y se describirá el cálculo de estadísticas de genética de poblaciones utilizando Pixy.
+
+---
+
+# Referencias
+
+-DePristo, M. A., et al. (2011). A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nature Genetics, 43(5), 491–498.
+-Li, H., & Durbin, R. (2009). Fast and accurate short read alignment with Burrows-Wheeler Aligner. Bioinformatics, 25(14), 1754–1760.
+-McKenna, A., et al. (2010). The Genome Analysis Toolkit: A MapReduce framework for analyzing next-generation DNA sequencing data. Genome Research, 20(9), 1297–1303.
+-Picard toolkit. (2019). Broad Institute. https://broadinstitute.github.io/picard/
+-Poplin, R., et al. (2018). Scaling accurate genetic variant discovery to tens of thousands of samples. bioRxiv. https://doi.org/10.1101/201178
+-Takei, H., et al. (2021). De novo genome assembly of two tomato ancestors, Solanum pimpinellifolium and Solanum lycopersicum var. cerasiforme, by long-read sequencing. DNA Research, 28(1), dsaa029.
+-Teterina, A. A., et al. (2024). pixy: Unbiased estimation of nucleotide diversity and divergence in the presence of missing data. Molecular Ecology Resources, 21(8), 2759–2764.
+
 
 
