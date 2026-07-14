@@ -390,13 +390,13 @@ El conjunto inicial de variantes aún puede incluir falsos positivos, por esta r
 
 # Referencias
 
--DePristo, M. A., et al. (2011). A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nature Genetics, 43(5), 491–498.
--Li, H., & Durbin, R. (2009). Fast and accurate short read alignment with Burrows-Wheeler Aligner. Bioinformatics, 25(14), 1754–1760.
--McKenna, A., et al. (2010). The Genome Analysis Toolkit: A MapReduce framework for analyzing next-generation DNA sequencing data. Genome Research, 20(9), 1297–1303.
--Picard toolkit. (2019). Broad Institute. https://broadinstitute.github.io/picard/
--Poplin, R., et al. (2018). Scaling accurate genetic variant discovery to tens of thousands of samples. bioRxiv. https://doi.org/10.1101/201178
--Takei, H., et al. (2021). De novo genome assembly of two tomato ancestors, Solanum pimpinellifolium and Solanum lycopersicum var. cerasiforme, by long-read sequencing. DNA Research, 28(1), dsaa029.
--Teterina, A. A., et al. (2024). pixy: Unbiased estimation of nucleotide diversity and divergence in the presence of missing data. Molecular Ecology Resources, 21(8), 2759–2764.
+- DePristo, M. A., et al. (2011). A framework for variation discovery and genotyping using next-generation DNA sequencing data. Nature Genetics, 43(5), 491–498.
+- Li, H., & Durbin, R. (2009). Fast and accurate short read alignment with Burrows-Wheeler Aligner. Bioinformatics, 25(14), 1754–1760.
+- McKenna, A., et al. (2010). The Genome Analysis Toolkit: A MapReduce framework for analyzing next-generation DNA sequencing data. Genome Research, 20(9), 1297–1303.
+- Picard toolkit. (2019). Broad Institute. https://broadinstitute.github.io/picard/
+- Poplin, R., et al. (2018). Scaling accurate genetic variant discovery to tens of thousands of samples. bioRxiv. https://doi.org/10.1101/201178
+- Takei, H., et al. (2021). De novo genome assembly of two tomato ancestors, Solanum pimpinellifolium and Solanum lycopersicum var. cerasiforme, by long-read sequencing. DNA Research, 28(1), dsaa029.
+- Teterina, A. A., et al. (2024). pixy: Unbiased estimation of nucleotide diversity and divergence in the presence of missing data. Molecular Ecology Resources, 21(8), 2759–2764.
 
 
 
