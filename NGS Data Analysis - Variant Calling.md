@@ -49,6 +49,8 @@ Por ejemplo:
 
 Debido a esta relación logarítmica, pequeñas diferencias en la puntuación Phred representan cambios importantes en la confiabilidad de las bases.
 
+La **recalibración de la calidad de bases (Base Quality Score Recalibration, BQSR)** constituye una etapa de preprocesamiento que se realiza después del alineamiento, la ordenación del archivo BAM y el marcado de duplicados, pero antes del llamado de variantes con HaplotypeCaller. La herramienta BaseRecalibrator de GATK analiza las puntuaciones de calidad asignadas por el secuenciador y estima los errores sistemáticos asociados al ciclo de secuenciación, al contexto nucleotídico y a otras covariables. Para evitar confundir variantes biológicas con errores de secuenciación, el algoritmo utiliza un conjunto de variantes conocidas como referencia. Con esta información genera un modelo estadístico que posteriormente es aplicado mediante ApplyBQSR, el cual recalibra las puntuaciones Phred de cada base sin modificar la secuencia de nucleótidos. El archivo BAM resultante contiene estimaciones de calidad más precisas, lo que mejora la exactitud del ensamblaje local, el cálculo de probabilidades mediante PairHMM y, en consecuencia, el llamado de variantes realizado por HaplotypeCaller.
+
 2. La amplificación mediante PCR puede introducir mutaciones artificiales que posteriormente son interpretadas como variantes reales. Además, la sobreamplificación puede originar múltiples copias idénticas del mismo fragmento de ADN, conocidas como duplicados de PCR. Estos duplicados generan una representación artificialmente elevada de determinados alelos y pueden sesgar la estimación del genotipo. En el módulo anterior explico como realizar el marcado de duplicados mediante Picard MarkDuplicates. 
 
 3. Los errores de mapeo constituyen una de las principales causas de falsos positivos durante el llamado de variantes. Este problema ocurre principalmente cuando una lectura puede alinearse con alta similitud en múltiples regiones del genoma, situación frecuente en secuencias repetitivas, familias multigénicas o regiones altamente conservadas. Los alineadores asignan un valor de Mapping Quality (MAPQ) para estimar la probabilidad de que una lectura haya sido ubicada correctamente. Se filtran aplicando un umbral mínimo de MAPQ (típicamente MAPQ ≥ 20) durante el llamado de variantes, y excluyendo lecturas que mapean en múltiples posiciones del genoma (multimappers).
@@ -72,7 +74,7 @@ Solo con el Genotype Likelihood no es suficiente para definir el genotipo. En el
 
 La inferencia bayesiana constituye el fundamento estadístico de herramientas como GATK, FreeBayes y bcftools. El objetivo consiste en calcular la probabilidad del genotipo considerando toda la evidencia disponible. El teorema de Bayes combina el likelihood con un prior — un conocimiento previo sobre qué tan probable es cada genotipo antes de mirar las lecturas:
 
-El genotipo seleccionado es aquel con la mayor probabilidad posterior. Los priors representan el conocimiento biológico disponible antes del análisis. Dependiendo del algoritmo y del contexto pueden construirse a partir de:
+El genotipo seleccionado es aquel con la **mayor probabilidad posterior (MAP)**. Los priors representan el conocimiento biológico disponible antes del análisis. Dependiendo del algoritmo y del contexto pueden construirse a partir de:
 
 - Tasa esperada de heterocigosidad de la especie (p. ej., en humanos θ ≈ 0.001)
 - Frecuencias alélicas poblacionales de bases de datos como dbSNP o gnomAD
@@ -97,11 +99,11 @@ Estas frecuencias genotípicas se usan como priors en el modelo bayesiano conjun
 
 ---
 
-## ¿Cómo implementa GATK este modelo?
+# ¿Cómo implementa GATK este modelo?
 
-GATK (Genome Analysis Toolkit) es un conjunto de herramientas bioinformáticas desarrollado por el Broad Institute (MIT/Harvard) para el análisis de datos de secuenciación de alto rendimiento, principalmente orientado a la detección de variantes genómicas (SNPs, INDELs, variantes estructurales). Es el estándar en genómica humana y se ha extendido ampliamente a otros organismos. Su pipeline de Best Practices es el más citado y reproducido en la literatura de genómica de poblaciones.
+**GATK (Genome Analysis Toolkit)** es un conjunto de herramientas bioinformáticas desarrollado por el Broad Institute (MIT/Harvard) para el análisis de datos de secuenciación de alto rendimiento, principalmente orientado a la detección de variantes genómicas (SNPs, INDELs, variantes estructurales). Es el estándar en genómica humana y se ha extendido ampliamente a otros organismos. Su pipeline de Best Practices es el más citado y reproducido en la literatura de genómica de poblaciones.
 
-GATK implementa tres herramientas principales encadenadas: 
+GATK implementa tres herramientas principalmente: 
 
 ```
 HaplotypeCaller (por muestra)
@@ -121,343 +123,106 @@ GenotypeGVCFs (genotipado conjunto)
     Asigna genotipos MAP a cada muestra
     Reporta QUAL, GQ (Genotype Quality) y PL (Phred-scaled likelihoods)
 ```
+## HaplotypeCaller
 
+HaplotypeCaller es la herramienta central del pipeline. A diferencia de los llamadores de variantes más simples que examinan posición por posición, HaplotypeCaller trabaja sobre regiones activas del genoma (ventanas del genoma donde hay evidencia de variación, es decir, donde las lecturas difieren significativamente de la referencia) y reensambla localmente los haplotipos antes de llamar variantes. Esto lo hace considerablemente más preciso en regiones complejas con múltiples variantes cercanas o INDELs.
 
+Las regiones sin variación (no activas) son procesadas de forma simplificada y reportadas como bloques de referencia en el GVCF. En cada región activa, HaplotypeCaller construye un grafo de De Bruijn local a partir de los k-mers de las lecturas que mapean en esa región. Un grafo de De Bruijn conecta k-mers solapantes en un grafo dirigido donde cada camino posible representa un haplotipo candidato. Esto es importante porque permite a HaplotypeCaller "ver" combinaciones de variantes cercanas como haplotipos completos, en lugar de analizar cada posición de forma independiente. 
 
+<p align="center">
+ <img width="685" height="461" alt="image" src="https://github.com/user-attachments/assets/3df2e167-ce4f-40a5-b1a7-27b778b07017" />
 
-## Genotype Likelihood
+</p>
 
-El primer paso del llamado de variantes consiste en calcular la probabilidad de observar las lecturas obtenidas suponiendo que el individuo posee un determinado genotipo. Esta probabilidad recibe el nombre de **Genotype Likelihood**. La probabilidad conjunta de todas las lecturas permite estimar cuál es el genotipo más compatible con los datos experimentales.
+</p>
 
-# Inferencia bayesiana
+<p align="center">
+<b>Figura 1.</b> Representación esquemática de la construcción de un grafo de De Bruijn a partir de lecturas de secuenciación. Las lecturas se fragmentan en secuencias cortas de longitud k (k-mers), las cuales se conectan cuando comparten una superposición de k-1 nucleótidos. En el grafo, los nodos representan (k-1)-mers y las aristas corresponden a los k-mers. Los diferentes recorridos del grafo permiten reconstruir las secuencias presentes en la muestra, constituyendo la base de los algoritmos de ensamblaje local utilizados por herramientas como GATK HaplotypeCaller.
+  
+</p>
 
-La inferencia bayesiana constituye el fundamento estadístico de herramientas como GATK, FreeBayes y bcftools. El objetivo consiste en calcular la probabilidad del genotipo considerando toda la evidencia disponible. El modelo general puede expresarse como:
+### ¿Por qué se utilizan grafos de De Bruijn?
 
-\[
-P(Genotipo|Datos)\propto P(Datos|Genotipo)\times P(Genotipo)
-\]
+Antes de la introducción de los grafos de De Bruijn, muchos algoritmos de ensamblaje utilizaban grafos de solapamiento (Overlap Graphs). En estos grafos, cada nodo representa una lectura completa y las aristas indican que dos lecturas se solapan. Reconstruir la secuencia original equivale a encontrar un camino o ciclo hamiltoniano, es decir, un recorrido que visite cada vértice exactamente una vez. Por lo que su resolución es muy costosa cuando existen millones de lecturas.
 
-donde:
+Los grafos de De Bruijn reformulan el problema. En lugar de representar las lecturas completas, los nodos corresponden a los (k−1)-mers y las aristas a los k-mers. La reconstrucción de la secuencia consiste entonces en encontrar un camino o ciclo euleriano, que recorre cada arista exactamente una vez. A diferencia del problema hamiltoniano, el recorrido euleriano puede resolverse mediante algoritmos eficientes en tiempo polinómico, lo que hizo posible el ensamblaje de grandes genomas y el desarrollo de herramientas modernas de análisis de secuencias.
 
-- **P(Datos|Genotipo)** corresponde a la verosimilitud (Likelihood).
-- **P(Genotipo)** representa la probabilidad previa (Prior).
-- **P(Genotipo|Datos)** corresponde a la probabilidad posterior.
+En teoría de grafos, una arista es la conexión que une dos nodos o vértices. En un grafo de De Bruijn, los nodos representan secuencias de longitud k−1 (denominadas (k−1)-mers), mientras que las aristas representan los k-mers obtenidos de las lecturas de secuenciación. Cada arista conecta dos nodos porque el k-mer comparte un prefijo y un sufijo de longitud k−1. Por ejemplo, el k-mer ATG tiene como prefijo AT y como sufijo TG, por lo que se representa como una arista que conecta el nodo AT con el nodo TG. De esta manera, las aristas describen las posibles transiciones entre fragmentos consecutivos de la secuencia y permiten reconstruir los haplotipos o la secuencia original recorriendo el grafo.
 
-El genotipo seleccionado será aquel con mayor probabilidad posterior.
+### Algoritmo PairHMM (Pair Hidden Markov Model)
 
-Los priors representan el conocimiento previo disponible antes de analizar las lecturas. Dependiendo del algoritmo pueden construirse utilizando:
+Una vez construidos los haplotipos candidatos, HaplotypeCaller realinea cada lectura de la región activa a todos los haplotipos usando el algoritmo PairHMM (Pair Hidden Markov Model). PairHMM calcula la probabilidad de que cada lectura haya sido generada por cada haplotipo candidato, considerando las probabilidades de sustitución, inserción y deleción en cada posición. Este es el paso más costoso computacionalmente.
 
-- tasa esperada de heterocigosidad;
-- frecuencia conocida de SNPs;
-- bases de datos como dbSNP;
-- equilibrio de Hardy-Weinberg;
-- información proveniente de múltiples individuos.
+A diferencia del alineamiento inicial contra el genoma de referencia, este paso compara las lecturas con secuencias que representan las diferentes variantes candidatas presentes en la región, permitiendo determinar cuál de los haplotipos explica mejor los datos observados.
 
-La utilización de priors mejora considerablemente la precisión del llamado de variantes, especialmente en regiones con baja cobertura.
+PairHMM es un modelo probabilístico basado en Modelos Ocultos de Markov (Hidden Markov Models, HMM), el modelo evalúa la probabilidad de que una lectura haya sido generada a partir de un determinado haplotipo considerando tanto la secuencia observada como los posibles errores introducidos durante la secuenciación. Para ello, el algoritmo contempla tres tipos principales de eventos: coincidencias o sustituciones (Match/Mismatch), inserciones (Insertion) y deleciones (Deletion). Cada uno de estos eventos posee una probabilidad de transición y una probabilidad de emisión, calculadas a partir de las puntuaciones de calidad de las bases (Phred) y de modelos empíricos de error.
 
----
+Durante el proceso, PairHMM recorre simultáneamente la lectura y el haplotipo mediante programación dinámica, calculando para cada posición la probabilidad acumulada de las diferentes trayectorias posibles. El resultado final es una probabilidad de alineamiento (read likelihood), que indica qué tan probable es que esa lectura provenga de cada uno de los haplotipos candidatos. Este procedimiento se repite para todas las lecturas y todos los haplotipos de la región activa, generando una matriz de probabilidades que constituye la base para el cálculo posterior de los genotipos.
 
-# 4.12.5 Inferencia en múltiples muestras
+Debido a que cada lectura debe compararse contra todos los haplotipos candidatos y cada comparación requiere recorrer ambas secuencias posición por posición mediante programación dinámica, PairHMM representa la etapa de mayor costo computacional dentro de HaplotypeCaller. Por esta razón, las versiones modernas de GATK incorporan optimizaciones como la vectorización mediante instrucciones SIMD (AVX) y otras mejoras de hardware, reduciendo considerablemente el tiempo de ejecución sin afectar la precisión del llamado de variantes.
 
-Cuando varias muestras son analizadas simultáneamente, la estimación de los genotipos incorpora información poblacional.
+A partir de los scores de PairHMM, HaplotypeCaller calcula los Genotype Likelihoods para cada posición variable dentro de la región activa. Estos likelihoods reflejan la probabilidad de los datos bajo cada genotipo posible.
 
-El supuesto más utilizado corresponde al equilibrio de Hardy-Weinberg, según el cual, si la frecuencia del alelo A es **p** y la del alelo B es **q**, las frecuencias esperadas de los genotipos son:
-
-\[
-P(AA)=p^2
-\]
-
-\[
-P(AB)=2pq
-\]
-
-\[
-P(BB)=q^2
-\]
-
-Este enfoque incrementa la sensibilidad para detectar variantes raras presentes únicamente en algunos individuos de la población.
+Finalmente el modo -ERC GVCF, HaplotypeCaller genera un GVCF (Genomic VCF) que contiene: Sitios variantes: posiciones donde se detectó al menos un alelo alternativo, con sus Genotype Likelihoods en el campo PL y bloques de referencia: regiones consecutivas donde el individuo es homocigoto referencia con alta confianza, comprimidas en un solo registro con ALT=<NON_REF> e INFO/END indicando el fin del bloque.
 
 ---
 
+## Generación de archivos GVCF - Genotipado conjunto 
 
+En lugar de producir directamente un archivo VCF tradicional, HaplotypeCaller puede ejecutarse en modo **GVCF (Genomic Variant Call Format)**. El archivo GVCF almacena información tanto de posiciones variantes como no variantes, permitiendo posteriormente combinar múltiples individuos sin necesidad de repetir el llamado de variantes. Este enfoque constituye la base del genotipado conjunto utilizado por GATK. **GenomicsDBImport** es la herramienta que organiza la información de todos los GVCF en una unica base de datos optimizada para consultas rápidas y procesamiento paralelo.
 
+GATK implementa una estrategia denominada **Joint Genotyping** o **genotipado conjunto**, mediante la cual todas las muestras son evaluadas simultáneamente utilizando un único modelo probabilístico bayesiano. En lugar de llamar variantes de forma independiente en cada individuo, cada muestra se procesa inicialmente con HaplotypeCaller en modo GVCF, generando un archivo, los archivos GVCF de todas las muestras se combinan y son analizados conjuntamente mediante la herramienta GenotypeGVCFs, la cual integra la información de todos los individuos para determinar el genotipo más probable en cada sitio.
 
+Cada GVCF contiene, para cada posición del genoma, las probabilidades de los distintos genotipos posibles calculadas previamente por HaplotypeCaller a partir del ensamblaje local y del algoritmo PairHMM. En lugar de volver a procesar las lecturas de secuenciación, GenotypeGVCFs integra estas probabilidades entre todas las muestras y aplica un único modelo probabilístico para determinar cuáles sitios son realmente polimórficos y cuál es el genotipo más probable de cada individuo en cada posición.
 
-# 4.13 Genome Analysis Toolkit (GATK)
+Todos los individuos son evaluados exactamente en las mismas posiciones genómicas. Incluso si una muestra no presenta evidencia suficiente para llamar una variante de manera independiente, el algoritmo asigna un genotipo utilizando la información combinada de toda la cohorte. Así, una variante con baja cobertura en un individuo puede ser confirmada si también está presente en otros individuos de la población. Esto reduce la cantidad de datos faltantes (missing genotypes) y mejora la estimación de las frecuencias alélicas y genera un único archivo VCF multimuestreo consistente para todos los individuos.
 
-El **Genome Analysis Toolkit (GATK)** es un conjunto de herramientas bioinformáticas desarrollado por el Broad Institute para el descubrimiento y genotipado de variantes genómicas.
-
-Desde su publicación en 2010, GATK se ha convertido en uno de los estándares internacionales para el análisis de datos de resecuenciación debido a su elevada precisión y a la incorporación de modelos estadísticos avanzados.
-
-Actualmente es ampliamente utilizado en proyectos de secuenciación del genoma completo (WGS), exomas, paneles dirigidos y estudios de genética de poblaciones.
-
----
-
-# 4.13.1 Flujo Best Practices
-
-El flujo de trabajo recomendado por GATK se organiza en cuatro etapas principales:
-
-1. Preprocesamiento de los alineamientos.
-2. Descubrimiento de variantes.
-3. Genotipado conjunto.
-4. Filtrado de variantes.
-
-Cada una de estas etapas busca reducir progresivamente la incertidumbre de los datos hasta obtener un conjunto de variantes de alta confianza.
+Al conservar información sobre los sitios no variantes, el GVCF permite generar VCFs que incluyen tanto sitios variables como invariantes, lo cual es fundamental para calcular correctamente estadísticas de genética de poblaciones. Herramientas como **Pixy** utilizan esta información para estimar parámetros como la diversidad nucleotídica (π) y la divergencia entre poblaciones (dXY) sin introducir sesgos derivados de la ausencia de sitios invariantes.
 
 ---
 
-# 4.14 Preprocesamiento del archivo BAM
-
-Antes del llamado de variantes es necesario optimizar los alineamientos mediante varias etapas de procesamiento.
-
-## Ordenamiento
-
-Los alineamientos se ordenan según su posición cromosómica utilizando **samtools sort**.
-
-Este procedimiento facilita el acceso eficiente a regiones específicas del genoma.
-
----
-
-## Indexación
-
-Posteriormente se genera un índice (.bai) mediante **samtools index**, permitiendo el acceso aleatorio a cualquier posición del archivo BAM.
-
----
-
-## Marcado de duplicados
-
-Durante la amplificación por PCR pueden generarse múltiples copias del mismo fragmento de ADN.
-
-La herramienta **MarkDuplicates**, incluida en Picard, identifica estas copias utilizando la posición de inicio y orientación de las lecturas.
-
-Los duplicados no se eliminan físicamente, sino que son marcados para que puedan ser ignorados durante el llamado de variantes.
-
----
-
-## Recalibración de calidad de bases (BQSR)
-
-Los secuenciadores presentan errores sistemáticos asociados al ciclo de secuenciación, contexto nucleotídico y química utilizada.
-
-La herramienta **BaseRecalibrator** estima dichos errores utilizando variantes conocidas y genera un modelo estadístico que posteriormente corrige las puntuaciones Phred mediante **ApplyBQSR**.
-
-Este procedimiento mejora considerablemente la precisión del llamado de variantes.
-
----
-
-# 4.15 HaplotypeCaller
-
-HaplotypeCaller constituye el algoritmo central del pipeline moderno de GATK.
-
-A diferencia de los llamadores clásicos, que evalúan cada posición del genoma de forma independiente, HaplotypeCaller analiza regiones completas del genoma reconstruyendo los posibles haplotipos presentes en cada individuo.
-
-Este enfoque permite detectar con mayor precisión regiones que contienen múltiples SNPs e inserciones o deleciones cercanas.
-
-## 4.15.1 Regiones activas
-
-Inicialmente, HaplotypeCaller identifica regiones del genoma donde existe evidencia de variación.
-
-Estas regiones reciben el nombre de **Active Regions**.
-
-Únicamente estas regiones son sometidas al análisis intensivo, reduciendo considerablemente el tiempo computacional.
-
----
-
-## 4.15.2 Reensamblaje local
-
-Cada región activa es reensamblada localmente utilizando grafos de De Bruijn.
-
-Este procedimiento reconstruye los posibles haplotipos presentes sin depender completamente del alineamiento original.
-
-El reensamblaje local incrementa notablemente la precisión en regiones con múltiples indels.
-
----
-
-## 4.15.3 Pair Hidden Markov Model (PairHMM)
-
-Posteriormente, cada lectura es comparada contra todos los haplotipos candidatos mediante un modelo probabilístico denominado **Pair Hidden Markov Model (PairHMM)**.
-
-Este algoritmo calcula la probabilidad de que cada lectura provenga de cada haplotipo considerando:
-
-- errores de secuenciación;
-- inserciones;
-- deleciones;
-- mismatches.
-
-Las probabilidades obtenidas sirven posteriormente para calcular la verosimilitud de cada genotipo.
-
----
-
-## 4.15.4 Generación de archivos GVCF
-
-En lugar de producir directamente un archivo VCF tradicional, HaplotypeCaller puede ejecutarse en modo **GVCF (Genomic Variant Call Format)**.
-
-El archivo GVCF almacena información tanto de posiciones variantes como no variantes, permitiendo posteriormente combinar múltiples individuos sin necesidad de repetir el llamado de variantes.
-
-Este enfoque constituye la base del genotipado conjunto utilizado por GATK.
-
-# 4.16 Genotipado conjunto (Joint Genotyping)
-
-En estudios genómicos modernos es frecuente analizar simultáneamente decenas, cientos o incluso miles de individuos. Si cada muestra fuera analizada de manera independiente, una variante presente únicamente en pocos individuos podría no ser detectada debido a la baja evidencia estadística disponible en cada muestra por separado. Para superar esta limitación, GATK implementa una estrategia denominada **Joint Genotyping** o **genotipado conjunto**, mediante la cual todas las muestras son evaluadas simultáneamente utilizando un único modelo probabilístico.
-
-Este enfoque incrementa la sensibilidad para detectar variantes raras, mejora la consistencia de los genotipos entre individuos y permite diferenciar con mayor precisión entre posiciones verdaderamente invariantes y regiones con cobertura insuficiente.
-
----
-
-## 4.16.1 Formato GVCF
-
-El primer paso del genotipado conjunto consiste en ejecutar **HaplotypeCaller** en modo **GVCF (Genomic Variant Call Format)**.
-
-A diferencia del formato VCF tradicional, un archivo GVCF almacena información tanto de posiciones variantes como de regiones donde no se detectaron variantes, indicando el nivel de confianza asociado a cada sitio del genoma.
-
-Esta estrategia ofrece varias ventajas:
-
-- evita repetir el llamado de variantes cuando se incorporan nuevas muestras;
-- permite analizar cohortes de gran tamaño;
-- mejora la estimación de genotipos poco frecuentes;
-- facilita el procesamiento distribuido en sistemas de alto rendimiento.
-
-Cada individuo genera inicialmente un archivo GVCF independiente que posteriormente será integrado con el resto de las muestras.
-
----
-
-## 4.16.2 GenomicsDBImport y CombineGVCFs
-
-Una vez obtenidos todos los archivos GVCF, GATK proporciona dos herramientas para consolidar la información.
-
-### GenomicsDBImport
-
-Es el método recomendado para estudios con un gran número de muestras. Esta herramienta organiza la información de todos los GVCF en una base de datos optimizada para consultas rápidas y procesamiento paralelo.
-
-Sus principales ventajas son:
-
-- menor consumo de memoria;
-- mayor velocidad;
-- escalabilidad para cientos o miles de individuos.
-
-### CombineGVCFs
-
-Esta herramienta combina varios archivos GVCF en un único archivo. Aunque resulta adecuada para proyectos pequeños, presenta limitaciones de rendimiento cuando el número de muestras aumenta considerablemente.
-
----
-
-## 4.16.3 GenotypeGVCFs
-
-Una vez consolidados los archivos GVCF, la herramienta **GenotypeGVCFs** realiza el genotipado conjunto.
-
-Durante este procedimiento, GATK:
-
-1. analiza simultáneamente todas las muestras;
-2. estima la frecuencia de cada alelo;
-3. calcula nuevamente las probabilidades de cada genotipo;
-4. genera un único archivo VCF multimuesta.
-
-El análisis conjunto permite aumentar la potencia estadística del estudio y reducir la probabilidad de clasificar incorrectamente una variante como ausencia de variación debido a una cobertura insuficiente.
-
----
-
-# 4.17 Filtrado de variantes
+# Filtrado de variantes
 
 El llamado inicial de variantes está diseñado para maximizar la sensibilidad del análisis. En consecuencia, el conjunto de variantes obtenido suele contener tanto variantes verdaderas como falsos positivos derivados de errores de secuenciación, alineamiento o preparación de bibliotecas.
 
-Por esta razón, el filtrado constituye una etapa indispensable del análisis bioinformático.
+Por esta razón, el filtrado constituye una etapa indispensable del análisis bioinformático. El objetivo consiste en eliminar variantes poco confiables conservando únicamente aquellas respaldadas por suficiente evidencia experimental y estadística. Las estrategias más utilizadas son **Hard Filtering** y **Variant Quality Score Recalibration (VQSR)**.
 
-El objetivo consiste en eliminar variantes poco confiables conservando únicamente aquellas respaldadas por suficiente evidencia experimental y estadística.
+El Hard Filtering aplica umbrales fijos sobre diferentes métricas de calidad calculadas durante el llamado de variantes. Variant Quality Score Recalibration (VQSR) por su parte es un método de filtrado basado en aprendizaje estadístico que permite distinguir variantes verdaderas de falsos positivos utilizando la información conjunta de múltiples métricas de calidad. A diferencia del Hard Filtering, que evalúa cada métrica por separado mediante umbrales fijos, VQSR considera simultáneamente variables como QD, MQ, FS, SOR, MQRankSum, ReadPosRankSum y otras anotaciones generadas durante el llamado de variantes. El objetivo es identificar el patrón de características que presentan las variantes reales y diferenciarlo del patrón asociado a errores de secuenciación, alineamiento o preparación de bibliotecas.
 
-Las estrategias más utilizadas son **Hard Filtering** y **Variant Quality Score Recalibration (VQSR)**.
+VQSR emplea un modelo de mezcla de distribuciones gaussianas (Gaussian Mixture Model, GMM), el cual es capaz de representar la existencia de varios grupos de variantes con características estadísticas diferentes, en lugar de asumir que todas siguen una única distribución. Para entrenar este modelo, GATK utiliza un conjunto de variantes de alta confianza (training set), como HapMap, Omni o Mills en el caso del genoma humano. A partir de estas variantes, el algoritmo aprende la distribución conjunta de las diferentes anotaciones de calidad, construyendo un espacio multidimensional en el que cada eje representa una métrica distinta. En este espacio, las variantes verdaderas tienden a agruparse formando regiones con características similares, mientras que los artefactos ocupan regiones diferentes.
 
----
+En lugar de evaluar cada métrica por separado, el algoritmo estima la probabilidad de que la combinación completa de anotaciones observada para una variante sea consistente con el comportamiento de las variantes de alta confianza. A partir de estas probabilidades, calcula una puntuación denominada VQSLOD (Variant Quality Score Log-Odds), definida como el logaritmo de la razón entre la probabilidad de que la variante pertenezca al conjunto de variantes verdaderas y la probabilidad de que corresponda a un artefacto técnico. Un valor positivo de VQSLOD indica que la variante presenta un perfil de calidad similar al de las variantes utilizadas para entrenar el modelo y, por tanto, tiene una alta probabilidad de ser real. En contraste, valores negativos sugieren que la combinación de métricas observada se asemeja más a la de errores de secuenciación o alineamiento, por lo que la variante es más susceptible de ser filtrada.
 
-## 4.17.1 Hard Filtering
+Debido a que VQSR necesita un gran número de variantes y un conjunto de entrenamiento de alta calidad para construir un modelo robusto, este método se recomienda principalmente para proyectos de secuenciación de gran escala en organismos modelo, como el genoma humano. En contraste, en especies no modelo o estudios con pocas muestras, donde no existen bases de datos confiables de variantes o el número de variantes es insuficiente para entrenar el modelo, suele emplearse **Hard Filtering** como estrategia alternativa.
 
-El Hard Filtering aplica umbrales fijos sobre diferentes métricas de calidad calculadas durante el llamado de variantes.
-
-Es el método recomendado cuando:
-
-- se dispone de pocas muestras;
-- no existen bases de datos de variantes conocidas;
-- se trabaja con organismos no modelo;
-- no es posible entrenar modelos estadísticos complejos.
-
-Las principales métricas utilizadas incluyen:
-
-### Quality by Depth (QD)
-
-Representa la calidad de la variante normalizada por la profundidad de cobertura.
-
-Valores bajos indican que la aparente calidad de la variante depende únicamente de una cobertura muy elevada.
-
----
-
-### Fisher Strand Bias (FS)
-
-Evalúa si existe un sesgo significativo entre las lecturas provenientes de ambas hebras del ADN.
-
-Un valor elevado puede indicar errores sistemáticos de secuenciación o alineamiento.
-
----
-
-### Strand Odds Ratio (SOR)
-
-Constituye una medida alternativa del sesgo de hebra menos sensible a diferencias extremas en la cobertura.
-
----
-
-### Mapping Quality (MQ)
-
-Corresponde a la calidad promedio del alineamiento de todas las lecturas que soportan una variante.
-
-Valores bajos suelen indicar regiones repetitivas o alineamientos ambiguos.
-
----
-
-### Mapping Quality Rank Sum Test (MQRankSum)
-
-Compara la calidad del alineamiento entre las lecturas que contienen el alelo de referencia y aquellas que contienen el alelo alternativo.
-
-Grandes diferencias pueden sugerir errores de mapeo.
-
----
-
-### Read Position Rank Sum Test
-
-Evalúa si el alelo alternativo aparece preferentemente en los extremos de las lecturas.
-
-Las variantes verdaderas suelen distribuirse uniformemente a lo largo de toda la longitud de la lectura.
-
----
-
-### Depth (DP)
-
-Representa el número total de lecturas que cubren una posición determinada.
-
-Coberturas extremadamente bajas disminuyen la confianza en el genotipo, mientras que coberturas excesivamente altas pueden indicar duplicados o regiones repetitivas.
-
----
-
-## 4.17.2 Variant Quality Score Recalibration (VQSR)
-
-Cuando se dispone de grandes cohortes y bases de datos de variantes conocidas, GATK recomienda utilizar **Variant Quality Score Recalibration (VQSR)**.
-
-Este procedimiento utiliza modelos de aprendizaje automático basados en mezclas de gaussianas para aprender las características de variantes verdaderas a partir de conjuntos de entrenamiento como dbSNP, HapMap o 1000 Genomes.
-
-Posteriormente, cada variante recibe una puntuación que representa la probabilidad de corresponder a una variante real.
-
-Las principales ventajas de VQSR son:
-
-- mayor sensibilidad;
-- menor tasa de falsos positivos;
-- filtrado adaptativo;
-- mejor desempeño en estudios poblacionales.
-
-No obstante, este método requiere un gran número de variantes conocidas y un tamaño de muestra considerable, por lo que generalmente no resulta adecuado para organismos no modelo.
+| Métrica | ¿Qué evalúa? | ¿Cómo se calcula? | Interpretación biológica | Valores generalmente deseables* |
+|----------|--------------|-------------------|--------------------------|---------------------------------|
+| **QD (Quality by Depth)** | Calidad de la variante normalizada por la cobertura. | \(QD = \frac{QUAL}{DP}\), donde **QUAL** es la calidad Phred de la variante y **DP** la profundidad de cobertura. | Permite distinguir variantes respaldadas por evidencia consistente de aquellas cuya calidad depende únicamente de una cobertura muy alta. | > 2.0 |
+| **FS (Fisher Strand Bias)** | Sesgo entre las lecturas de la hebra directa y reversa. | Se construye una tabla de contingencia (Referencia/Alternativo × Forward/Reverse) y se aplica el **Test Exacto de Fisher**. El valor *p* se transforma a escala Phred: \(FS=-10\log_{10}(p)\). | Valores altos indican que el alelo alternativo aparece preferentemente en una sola hebra, lo cual suele asociarse con errores de secuenciación o alineamiento. | < 60 (SNPs)<br>< 200 (Indels) |
+| **SOR (Strand Odds Ratio)** | Sesgo de hebra mediante una medida robusta basada en la razón de probabilidades. | Calcula una **Odds Ratio** entre las lecturas forward y reverse que soportan el alelo de referencia y el alternativo, aplicando posteriormente una transformación logarítmica. | Es menos sensible que FS a coberturas muy elevadas y complementa la evaluación del sesgo de hebra. | < 3.0 (SNPs)<br>< 10.0 (Indels) |
+| **MQ (Mapping Quality)** | Calidad promedio del alineamiento de las lecturas que soportan la variante. | Promedio de los valores **MAPQ** asignados por el alineador (BWA-MEM, Bowtie2, Minimap2, etc.), donde \(MAPQ=-10\log_{10}(P_{alineamiento\ incorrecto})\). | Valores bajos sugieren regiones repetitivas, alineamientos ambiguos o baja confianza en la posición de las lecturas. | > 40 |
+| **MQRankSum** | Diferencia en la calidad de alineamiento entre las lecturas con el alelo de referencia y las que contienen el alelo alternativo. | Aplica un **Wilcoxon Rank Sum Test (Mann–Whitney U)** sobre los valores MAPQ de ambos grupos y reporta un estadístico Z. | Valores muy negativos indican que las lecturas con el alelo alternativo presentan peor alineamiento, lo que puede reflejar errores de mapeo. | > -12.5 |
+| **ReadPosRankSum** | Distribución de la posición del alelo dentro de las lecturas. | Utiliza un **Wilcoxon Rank Sum Test** para comparar la posición del alelo de referencia y del alternativo dentro de las lecturas. | Las variantes reales suelen distribuirse a lo largo de toda la lectura; los errores de secuenciación suelen concentrarse en los extremos. | > -8.0 |
+| **DP (Depth)** | Profundidad de cobertura. | Conteo directo del número de lecturas que cubren la posición genómica. | Coberturas bajas disminuyen la confianza en el llamado de variantes, mientras que coberturas extremadamente altas pueden indicar regiones repetitivas, duplicados o amplificaciones locales. | Depende del experimento |
+| **QUAL** | Confianza global en la existencia de la variante. | Calculada por GATK como una puntuación Phred derivada de la probabilidad de que exista una variante en esa posición. | Valores altos indican mayor evidencia estadística de que la variante es real. Sin embargo, aumenta con la cobertura, por lo que normalmente se interpreta junto con QD. | Cuanto mayor, mejor |
 
 ---
 
 # 4.18 Formato Variant Call Format (VCF)
 
-Una vez finalizado el llamado y filtrado de variantes, los resultados se almacenan en archivos **VCF (Variant Call Format)**, considerados el estándar internacional para representar variantes genómicas.
+Una vez finalizado el llamado y filtrado de variantes, los resultados se almacenan en archivos **VCF (Variant Call Format)**, considerados el estándar internacional para representar variantes genómicas. El formato VCF fue desarrollado para facilitar el intercambio de información entre diferentes herramientas bioinformáticas y contiene tanto información de cada variante como los genotipos de todos los individuos analizados.
 
-El formato VCF fue desarrollado para facilitar el intercambio de información entre diferentes herramientas bioinformáticas y contiene tanto información de cada variante como los genotipos de todos los individuos analizados.
+<p align="center">
+ <img width="1504" height="619" alt="image" src="https://github.com/user-attachments/assets/97de2cec-d79a-4b14-9fe1-c58cc52e5472" />
+
+</p>
+
+</p>
+
+<p align="center">
+<b>Figura 2.</b> The de facto file format for storing genetic variation is the Variant Call Format (VCF) and was developed under the 1000 Genomes Project. Currently, the Large Scale Genomics work stream of the Global Alliance for Genomics & Health (GA4GH) maintain the specification of the VCF (and other high-throughput sequencing data formats). 
+  
+</p>
 
 ---
 
