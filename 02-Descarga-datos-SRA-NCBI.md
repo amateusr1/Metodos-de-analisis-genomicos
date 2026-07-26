@@ -1,5 +1,17 @@
 # Descargar datos desde el Sequence Read Archive (SRA)
+
+> **Autor:** Andrey Mateus-Ruiz  
+> **Curso:** Métodos de Análisis de Datos Genómicos (2018846-6)  
+> **Profesor:** Ph.D. Gustavo Silva-Arias  
+> **Universidad Nacional de Colombia**
+
+---
+
 El SRA Toolkit (SRA Tools) es un conjunto de herramientas de software de línea de comandos desarrollado por el NCBI para descargar, manipular y convertir datos de secuenciación de ADN/ARN (lecturas cortas) desde el repositorio público Sequence Read Archive (SRA) a formatos utilizables como FASTQ.
+
+> **Nota**
+>
+> Este documento se encuentra en constante construcción y actualización. La idea de este repositorio es funcionar como una bitácora técnica del curso, por lo que se irán incorporando nuevos comandos, herramientas y ejemplos conforme avancen los diferentes módulos.
 
 ## Crear un ambiente conda de trabajo
 Los ambientes conda permiten instalar software de forma aislada sin afectar el sistema global del clúster, y sin solicitar permisos al administrador. Cada ambiente es independiente y reproducible — cualquier persona puede recrearlo con el mismo comando.
