@@ -1,63 +1,62 @@
 # Métodos de Análisis Genómicos
 
-Repositorio de trabajo del curso de Maestría en Ciencias - Biología **Métodos de Análisis de Datos Genómicos (2018846-6)** de la Universidad Nacional de Colombia.
+Bienvenido a este repositorio, una bitácora de trabajo dedicada al análisis de datos genómicos utilizando herramientas de bioinformática y secuenciación de nueva generación (NGS).
 
-Aquí se documentan los flujos de trabajo, scripts y notas utilizados durante el curso, empleando datos reales de secuenciación de nueva generación (NGS) sobre un clúster HPC.
+Este proyecto fue creado por **Andrey Mateus-Ruiz** como parte del curso de la Maestría en Ciencias - Biología **Métodos de Análisis de Datos Genómicos (2018846-6)** de la **Universidad Nacional de Colombia**, dictado por el **Ph.D. Gustavo Silva-Arias**.
 
----
+Más que un conjunto de apuntes, este repositorio busca documentar paso a paso los análisis realizados durante el curso: desde la descarga de datos y el manejo de Linux hasta el ensamblaje de genomas, el análisis de variantes y los estudios de diversidad genética. Cada módulo reúne comandos, explicaciones, resultados, recomendaciones y notas obtenidas durante el proceso de aprendizaje.
 
-# 📚 Contenido
-
-## 1. Introducción a Linux
-Aprende los comandos básicos, manejo de archivos, permisos y ejecución de programas en un entorno Linux.
-
-➡️ **[Ir al módulo](Introducción-a-Linux.md)**
+> **Este repositorio se encuentra en constante construcción.**
+>
+> La idea fue llevar un diario técnico del curso, registrando cada flujo de trabajo conforme era aprendido y ejecutado. Por ello, el contenido continuará creciendo, mejorando y actualizándose con nuevas herramientas, explicaciones y ejemplos.
 
 ---
 
-## 2. Descarga de datos desde el SRA
-Cómo descargar datos de secuenciación desde el NCBI utilizando SRA Toolkit.
+## 🐧 Introducción a Linux
+Fundamentos del sistema operativo Linux para bioinformática: navegación, manejo de archivos, permisos, procesos, uso del clúster HPC y recomendaciones.
 
-➡️ **[Ir al módulo](Descarga-datos-SRA-NCBI.md)**
-
----
-
-## 3. Ensamblaje de novo de plastomas
-Flujo completo para ensamblar genomas plastidiales a partir de lecturas Illumina.
-
-➡️ **[Ir al módulo](Ensamblaje-de-Novo-Plastoma.md)**
+➡️ **[Abrir módulo](Introducción-a-Linux.md)**
 
 ---
 
-## 4. Mapeo contra referencia (BBMap)
-Alineamiento de lecturas contra un genoma de referencia utilizando BBMap.
+## ⬇️ Descarga de datos desde el SRA
+Obtención de datos de secuenciación desde el NCBI utilizando SRA Toolkit y organización de proyectos de análisis.
 
-➡️ **[Ir al módulo](Mapeo-contra-referencia-bbmap.md)**
-
----
-
-## 5. NGS Data Analysis: Mapping
-Pipeline de alineamiento utilizando BWA-MEM2, Samtools y herramientas complementarias.
-
-➡️ **[Ir al módulo](NGS%20Data%20Analysis%20-%20Mapping.md)**
+➡️ **[Abrir módulo](Descarga-datos-SRA-NCBI.md)**
 
 ---
 
-## 6. NGS Data Analysis: Variant Calling
-Llamada de variantes con GATK, generación de GVCFs, GenomicsDB y filtrado.
+## 🌿 Ensamblaje *de novo* de plastomas
+Flujo completo para el ensamblaje de genomas plastidiales a partir de lecturas Illumina, incluyendo control de calidad, ensamblaje y evaluación de resultados.
 
-➡️ **[Ir al módulo](NGS%20Data%20Analysis%20-%20Variant%20Calling.md)**
-
----
-
-## 7. RADseq
-Análisis de datos RADseq/GBS para diversidad genética y estructura poblacional.
-
-➡️ **[Ir al módulo](RADseq.md)**
+➡️ **[Abrir módulo](Ensamblaje-de-Novo-Plastoma.md)**
 
 ---
 
+## 🧬 NGS Data Analysis – Mapping
+Pipeline de alineamiento basado en BWA-MEM2, Samtools y herramientas complementarias para la preparación de archivos BAM de alta calidad.
 
-# Metodos-de-analisis-genomicos
-Repositorio de trabajo del curso de posgrado Métodos de Análisis de Datos Genómicos (2018846-6), Universidad Nacional de Colombia. 
-Contiene los scripts, flujos de trabajo, notas y reportes desarrollados a lo largo de los módulos: introducción a Linux, ensamblado de novo de genomas plastidiales, mapeo a genoma de referencia, llamada de variantes, análisis de diversidad genética a partir de datos de representación reducida (RADseq/GBS), etc. Los análisis se implementan en entornos de línea de comandos sobre clúster HPC, utilizando datos reales de secuenciación de nueva generación (NGS).
+➡️ **[Abrir módulo](NGS%20Data%20Analysis%20-%20Mapping.md)**
+
+---
+
+## 🔬 NGS Data Analysis – Variant Calling
+Proceso completo de identificación y filtrado de variantes utilizando GATK, incluyendo HaplotypeCaller, GenomicsDB, GenotypeGVCFs.
+
+➡️ **[Abrir módulo](NGS%20Data%20Analysis%20-%20Variant%20Calling.md)**
+
+---
+
+## 🌱 RADseq
+Introducción a las metodologías RADseq/GBS y análisis de diversidad genética, estructura poblacional y estadísticos poblacionales.
+
+➡️ **[Abrir módulo](RADseq.md)**
+
+---
+
+# 🎯 Objetivo del repositorio
+
+- Documentar flujos de trabajo reproducibles en bioinformática.
+- Servir como material de consulta para estudiantes e investigadores.
+- Compartir ejemplos prácticos utilizando datos reales y simulados.
+- Construir una referencia abierta que continúe creciendo con nuevos módulos y herramientas.
