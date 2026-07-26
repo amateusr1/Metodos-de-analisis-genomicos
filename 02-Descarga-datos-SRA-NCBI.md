@@ -1,4 +1,4 @@
-# Descargar datos desde el Sequence Read Archive (SRA)
+# 📥 Descargar datos desde el Sequence Read Archive (SRA)
 
 > **Autor:** Andrey Mateus-Ruiz  
 > **Curso:** Métodos de Análisis de Datos Genómicos (2018846-6)  
@@ -7,71 +7,274 @@
 
 ---
 
-El SRA Toolkit (SRA Tools) es un conjunto de herramientas de software de línea de comandos desarrollado por el NCBI para descargar, manipular y convertir datos de secuenciación de ADN/ARN (lecturas cortas) desde el repositorio público Sequence Read Archive (SRA) a formatos utilizables como FASTQ.
+# Descripción
+
+El **Sequence Read Archive (SRA)** es el mayor repositorio público de datos de secuenciación de ADN y ARN, administrado por el **National Center for Biotechnology Information (NCBI)**. En él se almacenan millones de experimentos provenientes de proyectos de genómica, transcriptómica, metagenómica y otras aplicaciones de secuenciación masiva.
+
+Para acceder a estos datos desde la línea de comandos se utiliza **SRA Toolkit**, un conjunto de herramientas desarrollado por el NCBI que permite descargar, convertir y gestionar archivos almacenados en el formato SRA.
+
+Durante este curso utilizamos **fasterq-dump**, la herramienta recomendada para convertir archivos SRA en archivos **FASTQ**, el formato estándar empleado por la mayoría de los programas de bioinformática.
 
 > **Nota**
 >
-> Este documento se encuentra en constante construcción y actualización. La idea de este repositorio es funcionar como una bitácora técnica del curso, por lo que se irán incorporando nuevos comandos, herramientas y ejemplos conforme avancen los diferentes módulos.
+> Este documento se encuentra en constante construcción y actualización. Hace parte de la bitácora técnica del curso y continuará incorporando nuevos ejemplos, recomendaciones y buenas prácticas.
 
-## Crear un ambiente conda de trabajo
-Los ambientes conda permiten instalar software de forma aislada sin afectar el sistema global del clúster, y sin solicitar permisos al administrador. Cada ambiente es independiente y reproducible — cualquier persona puede recrearlo con el mismo comando.
-El ambiente "sratools" se creó con:
+---
+
+# Objetivos
+
+Al finalizar este módulo podrás:
+
+- Comprender qué es el Sequence Read Archive (SRA).
+- Instalar SRA Toolkit utilizando Conda.
+- Crear un ambiente reproducible para el análisis.
+- Descargar datos de secuenciación mediante `fasterq-dump`.
+- Automatizar descargas de múltiples muestras.
+- Comprimir y organizar archivos FASTQ para análisis posteriores.
+
+---
+
+# ¿Qué es el Sequence Read Archive?
+
+El Sequence Read Archive (SRA) almacena datos crudos de secuenciación provenientes de diferentes plataformas como:
+
+- Illumina
+- PacBio
+- Oxford Nanopore
+- Ion Torrent
+
+Cada experimento posee un identificador único denominado **Accession**, por ejemplo
+
 ```
+SRR31477438
+```
+
+Estos identificadores serán utilizados para descargar los datos.
+
+---
+
+# Instalación de SRA Toolkit
+
+La forma más sencilla de instalar SRA Toolkit es mediante Conda.
+
+Crear el ambiente
+
+```bash
 conda create -n sratools -c bioconda sra-tools -y
-#para activarlo
+```
+
+Activar el ambiente
+
+```bash
 conda activate sratools
 ```
-Una vez creado, se activa con conda activate sratools antes de cada sesión de trabajo.
-### Activación en scripts SLURM y consola
-Se requiere cargar el módulo de anaconda explícitamente al inicio de cada script:
-```
-#En Scripts SLURM
 
-module load envs/anaconda3
-source $(conda info --base)/etc/profile.d/conda.sh
-conda activate sratools
+Verificar la instalación
 
-#En la consola para cargar el ambiente
-
-module load envs/anaconda3
-conda activate sratools
-```
-## Instalar sra-tools via mamba que resuelve dependencias mejor:
-Si la instalación directa con conda falla por conflicto de dependencias, se recomienda usar mamba, que resuelve dependencias de forma más eficiente:
-```
-conda install -c conda-forge mamba -y
-mamba install -c bioconda -c conda-forge sra-tools -y
-```
-Verificar la instalación:
-```
-fastq-dump --version
+```bash
 fasterq-dump --version
 ```
-## Descargar datos desde el Sequence Read Archive (SRA)
-La descarga se automatizó con un loop que lee los accesiones desde un archivo Sra.txt (uno por línea), descarga cada uno con fasterq-dump y comprime los archivos resultantes:
-```
-#!/bin/bash
-#SBATCH --job-name=job1        # Job name
-#SBATCH --nodelist=hercules3          # Node select
-#SBATCH --clusters=biocomputo           # Cluster name
-#SBATCH --partition=cpu.cecc           # partition Name, is ~ -q normal.q in SGE
-#SBATCH --nodes=1                      # Number of compute nodes for the job.
-#SBATCH --ntasks-per-node=1           # Corresponds to number of task/works on the compute node.
-#SBATCH --cpus-per-task=10              # Corresponds to number of cores on the compute node.
-#SBATCH --output=job1_%j.out     # where to store the standart output,  (%j is the JOBID)
-#SBATCH --error=job1_%j.err      # where to store the standart error output,  (%j is the JOBID)
 
-# Your script goes here
+---
+
+# Instalación utilizando Mamba
+
+Cuando Conda presenta conflictos de dependencias, **Mamba** suele resolverlas considerablemente más rápido.
+
+Instalar Mamba
+
+```bash
+conda install -c conda-forge mamba -y
+```
+
+Instalar SRA Toolkit
+
+```bash
+mamba install -c bioconda -c conda-forge sra-tools -y
+```
+
+Verificar
+
+```bash
+fasterq-dump --version
+```
+
+---
+
+# Activar el ambiente en un clúster HPC
+
+En muchos clústeres es necesario cargar primero el módulo de Anaconda.
+
+En consola
+
+```bash
+module load envs/anaconda3
+
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate sratools
+```
+
+En un script SLURM
+
+```bash
+module load envs/anaconda3
+
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate sratools
+```
+
+---
+
+# Descargar una única muestra
+
+Supongamos que queremos descargar la muestra
+
+```
+SRR31477438
+```
+
+El comando es
+
+```bash
+fasterq-dump SRR31477438
+```
+
+Si la muestra es de lecturas pareadas (*paired-end*), se obtendrán dos archivos
+
+```
+SRR31477438_1.fastq
+SRR31477438_2.fastq
+```
+
+---
+
+# Utilizar múltiples hilos
+
+La descarga puede acelerarse indicando el número de núcleos disponibles.
+
+```bash
+fasterq-dump SRR31477438 \
+-e 10
+```
+
+donde
+
+- `-e` especifica el número de hilos utilizados durante la conversión del archivo SRA.
+
+---
+
+# Comprimir los archivos
+
+`fasterq-dump` genera archivos FASTQ sin comprimir.
+
+Una vez finalizada la descarga es recomendable comprimirlos.
+
+```bash
+gzip SRR31477438*.fastq
+```
+
+o todos los FASTQ del directorio
+
+```bash
+gzip *.fastq
+```
+
+---
+
+# Descargar múltiples muestras automáticamente
+
+Crear un archivo llamado
+
+```
+Sra.txt
+```
+
+con un identificador por línea
+
+```
+SRR31477438
+SRR38359005
+SRR38359006
+```
+
+Posteriormente utilizar el siguiente script.
+
+```
 
 module load envs/anaconda3
+
 source $(conda info --base)/etc/profile.d/conda.sh
 
 conda activate sratools
 
-while read run; do
-    fasterq-dump $run -e 10
+while read run
+do
+
+    echo "Descargando ${run}"
+
+    fasterq-dump \
+        ${run} \
+        -e 10
+
     gzip ${run}_*.fastq
+
 done < Sra.txt
 ```
-El script separa las lecturas pareadas en dos archivos (_1.fastq.gz y _2.fastq.gz). El flag --gzip comprime los archivos durante la descarga, reduciendo el espacio en disco requerido. Donde -e 10 especifica el número de hilos para la descarga. 
+
+---
+
+# Explicación del script
+
+El script realiza automáticamente las siguientes acciones:
+
+1. Carga el ambiente Conda donde se encuentra instalado SRA Toolkit.
+
+2. Lee cada identificador almacenado en `Sra.txt`.
+
+3. Descarga cada experimento utilizando `fasterq-dump`.
+
+4. Convierte el archivo SRA al formato FASTQ.
+
+5. Comprime los archivos FASTQ mediante `gzip`.
+
+6. Continúa con la siguiente muestra hasta finalizar todas las descargas.
+
+---
+
+# Verificar la descarga
+
+Comprobar que los archivos fueron creados
+
+```bash
+ls -lh *.fastq.gz
+```
+
+Visualizar las primeras secuencias
+
+```bash
+zcat SRR31477438_1.fastq.gz | head -12
+```
+
+Contar el número de archivos descargados
+
+```bash
+ls *.fastq.gz | wc -l
+```
+
+---
+
+# Buenas prácticas
+
+- Mantener un archivo `Sra.txt` con todos los accesiones utilizados en el proyecto.
+- Comprimir los archivos inmediatamente después de la descarga para ahorrar espacio en disco.
+- Verificar que las descargas finalizaron correctamente antes de continuar con el análisis.
+- Conservar los archivos `.out` y `.err` generados por SLURM para facilitar la identificación de errores.
+
+---
+
+# Próximo módulo
+
+En el siguiente módulo realizaremos el **control de calidad de las lecturas** utilizando herramientas como **Trimmomatic** **Modúlo clean de Captus** **FastQC** y **BBTools**, preparando los datos para el ensamblaje o el alineamiento contra un genoma de referencia.
 
