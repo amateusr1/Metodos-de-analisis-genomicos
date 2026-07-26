@@ -78,7 +78,7 @@ module load apps/trimmomatic/0.39
 
 cd /scratchsan/amateusr/secuences/
 
-for sample in SRR31477438 SRR38359005
+for sample in SRR31477438 SRR38359005 SRR37254991
 do
 
 java -jar /local64/usr_local/Trimmomatic-0.39/trimmomatic-0.39.jar PE \
@@ -131,8 +131,6 @@ clean/
 
 ├── SRR31477438_R1_clean.fastq.gz
 ├── SRR31477438_R1_unpaired.fastq.gz
-├── SRR31477438_R2_clean.fastq.gz
-└── SRR31477438_R2_unpaired.fastq.gz
 ```
 
 Las lecturas **_clean.fastq.gz** conservan únicamente los pares que sobrevivieron al filtrado y serán las utilizadas en los análisis posteriores.
