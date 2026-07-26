@@ -498,9 +498,6 @@ q
 # Recursos recomendados
 
 - Linux Journey — https://linuxjourney.com/
-- The Linux Command — William Shotts
-- Software Carpentry — https://software-carpentry.org/
-- GNU Core Utilities — https://www.gnu.org/software/coreutils/
 
 ---
 
