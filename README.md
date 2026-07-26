@@ -1,6 +1,6 @@
-# Métodos de Análisis Genómicos
+# Bienvenid@ a Métodos de Análisis Genómicos
 
-Bienvenido a este repositorio, una bitácora de trabajo dedicada al análisis de datos genómicos utilizando herramientas de bioinformática y secuenciación de nueva generación (NGS).
+Bienvenid@ a este repositorio, una bitácora de trabajo dedicada al análisis de datos genómicos utilizando herramientas de bioinformática y secuenciación de nueva generación (NGS).
 
 Este proyecto fue creado por **Andrey Mateus-Ruiz** como parte del curso de la Maestría en Ciencias - Biología **Métodos de Análisis de Datos Genómicos (2018846-6)** de la **Universidad Nacional de Colombia**, dictado por el **Ph.D. Gustavo Silva-Arias**.
 
