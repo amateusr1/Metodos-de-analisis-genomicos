@@ -465,6 +465,86 @@ q
 | Buscar comando anterior | `Ctrl + R` |
 
 ---
+# 📂 Transferencia de archivos
+
+Durante el análisis bioinformático es frecuente ejecutar los programas en un clúster HPC y posteriormente descargar los resultados al computador personal para su inspección. Las herramientas más utilizadas para esta tarea son **scp** y **rsync**.
+
+## SCP (Secure Copy)
+
+`scp` permite copiar archivos o directorios entre el computador local y un servidor utilizando el protocolo SSH.
+
+### Descargar un archivo desde el servidor
+
+Los comandos para subir y bajar archivos del cluster al computador local o viceversa se corren en la consola del equipo local no dentro del cluster.
+
+```bash
+scp usuario@servidor:/ruta/al/archivo .
+```
+
+Ejemplo:
+
+```bash
+scp amateusr@hercules2:/scratchsan/amateusr/curso/fastqc/multiqc_report.html .
+```
+
+El punto (`.`) indica que el archivo se guardará en el directorio actual.
+
+Para descargarlo en una carpeta específica (Windows PowerShell):
+
+```powershell
+scp usuario@servidor:/ruta/archivo.html "C:\Users\Usuario\Downloads\"
+```
+
+### Subir un archivo al servidor
+
+```bash
+scp archivo.txt usuario@servidor:/ruta/destino/
+```
+
+### Copiar un directorio completo
+
+```bash
+scp -r carpeta usuario@servidor:/ruta/destino/
+```
+
+El parámetro `-r` copia todos los archivos y subdirectorios de forma recursiva.
+
+---
+
+## Rsync
+
+`rsync` realiza la misma función que `scp`, pero es más eficiente para archivos grandes o transferencias repetidas. Solo copia la información que ha cambiado, por lo que normalmente es más rápido y permite reanudar transferencias interrumpidas.
+
+### Descargar un directorio
+
+```bash
+rsync -avP usuario@servidor:/ruta/resultados/ ./resultados/
+```
+
+### Subir un directorio
+
+```bash
+rsync -avP ./resultados/ usuario@servidor:/ruta/destino/
+```
+
+### Significado de los parámetros
+
+| Opción | Descripción |
+|---------|-------------|
+| `-a` | Modo archivo (conserva permisos, fechas y estructura). |
+| `-v` | Muestra información detallada durante la transferencia. |
+| `-P` | Muestra el progreso y permite reanudar una transferencia interrumpida. |
+
+---
+
+## ¿Cuál utilizar?
+
+| Herramienta | ¿Cuándo usarla? |
+|--------------|----------------|
+| **scp** | Transferencias rápidas de uno o pocos archivos. |
+| **rsync** | Directorios grandes, proyectos completos o cuando la transferencia puede interrumpirse. |
+
+> **Recomendación:** Para descargar reportes como **FastQC**, **MultiQC** o archivos pequeños, `scp` suele ser suficiente. Para copiar proyectos completos de bioinformática (FASTQ, BAM, VCF, ensamblajes, etc.), `rsync` es generalmente la mejor opción por su velocidad y capacidad para reanudar transferencias.
 
 # Comandos más utilizados
 
