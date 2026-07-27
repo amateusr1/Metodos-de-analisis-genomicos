@@ -315,8 +315,7 @@ Ejemplo utilizando `scp`:
 
 Una vez descargados, basta con abrir los archivos en el navegador de su computador haciendo doble clic sobre ellos.
 
-<img width="942" height="408" alt="image" src="https://github.com/user-attachments/assets/bb4865b6-f363-4c9a-8a42-810b68bbd8ec" />
-
+<img width="838" height="403" alt="image" src="https://github.com/user-attachments/assets/cec61738-5bef-423c-a337-c364e04b0541" />
 
 ---
 
