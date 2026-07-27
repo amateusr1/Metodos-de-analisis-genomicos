@@ -50,6 +50,333 @@ Una limpieza adecuada de las lecturas puede:
 
 ---
 
+# 🔍 Evaluación de la calidad de las lecturas con FastQC
+
+## El formato FASTQ
+
+Los datos crudos de secuenciación generados por plataformas de secuenciación como Illumina y otras se almacenan en archivos con formato **FASTQ**, el cual contiene tanto la secuencia de nucleótidos como la calidad asociada a cada base.
+
+Cada lectura está representada por **cuatro líneas**:
+
+```text
+@SRR31477438.1
+GATCGATCGATCGATCGATCG...
++
+&&&%%%@@@@@@@@@@@@@@@...
+```
+
+| Línea | Contenido |
+|--------|-----------|
+| **1** | Identificador único de la lectura (comienza con `@`). |
+| **2** | Secuencia de nucleótidos (A, T, G, C y N). |
+| **3** | Separador (`+`), que puede repetir opcionalmente el identificador. |
+| **4** | Calidad Phred de cada base codificada mediante caracteres ASCII. |
+
+La cuarta línea contiene una puntuación de calidad para cada nucleótido de la secuencia. Estas puntuaciones indican la probabilidad de que una base haya sido identificada incorrectamente durante la secuenciación.
+
+---
+
+# Inspeccionar un archivo FASTQ comprimido
+
+Los archivos FASTQ suelen distribuirse comprimidos en formato **gzip** (`.fastq.gz`) para reducir el espacio de almacenamiento. Debido a ello, no pueden visualizarse directamente con comandos como `cat` o `head`.
+
+Para inspeccionar su contenido se utiliza `zcat`, que descomprime el archivo temporalmente y envía la salida a otros comandos.
+
+Visualizar la primera lectura:
+
+```bash
+zcat SRR31477438_R1.fastq.gz | head -4
+```
+
+---
+
+# Contar el número de lecturas
+
+Cada lectura ocupa exactamente **cuatro líneas**, por lo que el número total de secuencias puede obtenerse dividiendo el número total de líneas entre cuatro.
+
+Contar las líneas del archivo:
+
+```bash
+zcat SRR31477438_R1.fastq.gz | wc -l
+```
+
+Otra alternativa consiste en contar únicamente las líneas correspondientes a los encabezados de las lecturas.
+
+Por ejemplo:
+
+```bash
+zgrep -c "^@" SRR31477438_R1.fastq.gz
+```
+
+Sin embargo, este método no siempre es recomendable, ya que el carácter `@` también puede aparecer en la línea de calidad debido a la codificación ASCII utilizada por el formato FASTQ. Por esta razón, el conteo basado únicamente en `@` puede sobreestimar el número real de secuencias.
+
+---
+
+### ¿Qué es ASCII?
+
+ASCII (*American Standard Code for Information Interchange*) es un estándar que asigna un valor numérico a cada carácter utilizado por un computador. Por ejemplo:
+
+| Carácter | Código ASCII |
+|----------|-------------:|
+| `!` | 33 |
+| `"` | 34 |
+| `#` | 35 |
+| `$` | 36 |
+| `%` | 37 |
+| `A` | 65 |
+| `F` | 70 |
+| `I` | 73 |
+| `J` | 74 |
+
+En un archivo FASTQ, estos caracteres **no representan letras**, sino valores de calidad para cada nucleótido. La calidad de una base se expresa mediante una **puntuación Phred (Q)**, que estima la probabilidad de que dicha base haya sido identificada incorrectamente durante la secuenciación.
+
+Por ejemplo:
+
+| Calidad (Q) | Probabilidad de error | Precisión |
+|------------:|----------------------:|----------:|
+| 10 | 1 en 10 | 90 % |
+| 20 | 1 en 100 | 99 % |
+| 30 | 1 en 1000 | 99.9 % |
+| 40 | 1 en 10000 | 99.99 % |
+
+En bioinformática, generalmente se considera que una base con **Q ≥ 30** posee una calidad muy alta.
+
+---
+
+## ¿Por qué usar caracteres y no números?
+
+Guardar millones de puntuaciones de calidad como números ocuparía mucho espacio. Por ello, el formato FASTQ almacena cada valor utilizando un único carácter ASCII. En los archivos FASTQ modernos (Illumina 1.8+), la conversión se realiza mediante la codificación **Phred+33**.
+
+---
+
+## ¿Cómo interpreta FastQC estas puntuaciones?
+
+FastQC convierte automáticamente los caracteres ASCII en puntuaciones Phred y calcula diferentes métricas de calidad, entre ellas:
+
+- Calidad promedio por posición de la lectura.
+- Calidad promedio por secuencia.
+- Distribución de las puntuaciones Phred.
+- Identificación de regiones con baja calidad.
+
+Estos resultados permiten determinar si las lecturas requieren un proceso de limpieza antes del ensamblaje o del alineamiento contra un genoma de referencia.
+
+---
+
+# ¿Qué es FastQC?
+
+**FastQC** es una de las herramientas más utilizadas para realizar el control de calidad de datos de secuenciación masiva (NGS).
+
+Su objetivo es identificar posibles problemas presentes en los archivos FASTQ antes de iniciar cualquier análisis bioinformático. Entre los análisis realizados por FastQC se encuentran:
+
+- Calidad por posición de la lectura.
+- Calidad promedio por secuencia.
+- Distribución de longitudes.
+- Contenido GC.
+- Contenido de bases por posición.
+- Niveles de duplicación.
+- Secuencias sobre representadas.
+- Presencia de adaptadores.
+- Distribución de puntuaciones Phred.
+
+---
+
+# Consultar la ayuda del programa
+
+Para visualizar todas las opciones disponibles:
+
+```bash
+fastqc --help
+```
+
+o
+
+```bash
+fastqc -h
+```
+
+---
+
+# Ejecutar FastQC sobre una muestra
+
+El análisis puede realizarse indicando simplemente el archivo FASTQ como argumento.
+
+```bash
+fastqc SRR31477438_R1.fastq.gz
+```
+
+El programa acepta directamente archivos comprimidos (`.fastq.gz`), por lo que no es necesario descomprimirlos previamente.
+
+---
+
+# Analizar lecturas pareadas
+
+Cuando se trabaja con datos *paired-end*, es recomendable analizar ambos archivos de forma independiente.
+
+```bash
+fastqc \
+SRR31477438_R1.fastq.gz \
+SRR31477438_R2.fastq.gz
+```
+
+---
+
+# Especificar un directorio de salida
+
+Los reportes generados por FastQC pueden almacenarse en una carpeta específica mediante la opción `-o`.
+
+```bash
+mkdir FastQC
+
+fastqc \
+-o FastQC \
+SRR31477438_R1.fastq.gz \
+SRR31477438_R2.fastq.gz
+```
+
+---
+
+# Analizar múltiples muestras
+
+Cuando un proyecto contiene numerosas muestras, no es necesario ejecutar FastQC individualmente para cada archivo.
+
+Mediante el uso de comodines (`*`) es posible analizar todos los archivos FASTQ de un directorio en un único comando.
+
+```bash
+mkdir FastQC
+
+fastqc \
+-o FastQC \
+*.fastq.gz
+```
+
+o indicando la ruta completa
+
+```bash
+fastqc \
+-o FastQC \
+/ruta/al/directorio/*.fastq.gz
+```
+
+---
+
+# Ejemplo de ejecución en un clúster HPC
+
+```bash
+#!/bin/bash
+
+#SBATCH --job-name=FastQC
+#SBATCH --partition=cpu.cecc
+#SBATCH --clusters=biocomputo
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=8
+#SBATCH --output=FastQC_%j.out
+#SBATCH --error=FastQC_%j.err
+
+module load envs/anaconda3
+
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate fastqc
+
+mkdir -p FastQC
+
+fastqc \
+*.fastq.gz \
+-o FastQC \
+-t 8
+```
+
+---
+
+# Resultados generados
+
+Por cada archivo analizado, FastQC genera dos archivos:
+
+```
+SRR31477438_R1_fastqc.html
+
+SRR31477438_R1_fastqc.zip
+```
+
+- **HTML:** reporte interactivo para inspección visual.
+- **ZIP:** contiene todos los datos utilizados para generar el reporte.
+
+# Visualizar los reportes
+
+FastQC genera un reporte en formato **HTML**, que puede abrirse directamente desde cualquier navegador web. Cuando el análisis se ejecuta en un clúster HPC, lo más práctico es descargar únicamente los archivos `.html`, ya que contienen toda la información necesaria para interpretar los resultados.
+
+La transferencia puede realizarse mediante herramientas como `scp` o `rsync`.
+
+Ejemplo utilizando `scp`:
+
+```bash
+scp usuario@servidor:/ruta/FastQC/*_fastqc.html .
+```
+
+Una vez descargados, basta con abrir los archivos en el navegador de su computador haciendo doble clic sobre ellos.
+
+<img width="942" height="408" alt="image" src="https://github.com/user-attachments/assets/bb4865b6-f363-4c9a-8a42-810b68bbd8ec" />
+
+
+---
+
+# Resumen de resultados con MultiQC
+
+Cuando se analizan múltiples muestras resulta poco práctico revisar cada reporte individualmente.
+
+**MultiQC** recopila automáticamente todos los resultados generados por FastQC y produce un único informe interactivo que resume la calidad de todas las muestras del proyecto.
+
+Activar el ambiente:
+
+```bash
+module load envs/anaconda3
+
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate multiqc
+```
+
+Ejecutar MultiQC:
+
+```bash
+cd FastQC
+
+multiqc .
+```
+
+Como resultado se genera un archivo
+
+```
+multiqc_report.html
+```
+
+que resume todos los reportes individuales de FastQC en una única página.
+
+---
+
+# Interpretación de los resultados
+
+Al inspeccionar los reportes de FastQC es recomendable prestar especial atención a los siguientes indicadores:
+
+- **Per base sequence quality:** calidad de las bases a lo largo de cada lectura.
+- **Per sequence quality scores:** distribución de la calidad promedio por lectura.
+- **Per base sequence content:** proporción de A, T, G y C en cada posición.
+- **Per sequence GC content:** distribución del contenido GC de las secuencias.
+- **Adapter content:** detección de adaptadores residuales.
+- **Overrepresented sequences:** identificación de secuencias excesivamente abundantes.
+- **Sequence duplication levels:** evaluación del nivel de duplicación de las lecturas.
+
+No todos los módulos marcados con **Warning** o **Fail** representan necesariamente un problema. La interpretación de estos indicadores depende del tipo de experimento (WGS, RNA-seq, RADseq, amplicones, metagenómica, entre otros) y del protocolo de preparación de bibliotecas utilizado.
+
+---
+
+# Buenas prácticas
+
+- Ejecutar FastQC inmediatamente después de descargar las lecturas.
+- Repetir el análisis una vez finalizada la limpieza de los datos.
+- Comparar los reportes antes y después del filtrado para verificar la eliminación de adaptadores y la mejora en la calidad de las lecturas.
+- Utilizar MultiQC cuando se analicen múltiples muestras para facilitar la comparación entre ellas.
+
 # 🌿 Trimmomatic
 
 ## ¿Qué es Trimmomatic?
