@@ -336,7 +336,7 @@ source $(conda info --base)/etc/profile.d/conda.sh
 conda activate multiqc
 ```
 
-Ejecutar MultiQC:
+Ejecutar MultiQC: El punto al final de la linea le dice al programa lea todos los .html en el directorio y unifiquelos.
 
 ```bash
 cd FastQC
@@ -582,6 +582,16 @@ Al finalizar la ejecución, Captus crea un directorio denominado `01_clean_reads
 | **03_qc_extras/** | Tablas con estadísticas detalladas utilizadas para construir el reporte final. |
 | **captus-clean_report.html** | Reporte interactivo que resume la calidad de todas las muestras procesadas. |
 | **captus-clean.log** | Registro general de la ejecución de Captus. |
+
+---
+
+# Discusión
+
+Para las tres muestras de Solanum lycopersicum utilizadas en este curso se realizó una evaluación de calidad antes y después del proceso de limpieza utilizando FastQC y la integración de resultados mediante MultiQC. Los reportes iniciales permitieron identificar el estado general de las lecturas crudas, mientras que los reportes posteriores confirmaron que la configuración de Trimmomatic empleada (ILLUMINACLIP:TruSeq3-PE-2.fa:2:30:10 LEADING:3 TRAILING:3 SLIDINGWINDOW:4:15 MINLEN:21) eliminó de forma efectiva los adaptadores y las regiones de baja calidad sin comprometer la cantidad de datos útiles. Tras el filtrado, las muestras presentaron una calidad promedio por base superior a Q30 en prácticamente toda la longitud de las lecturas, ausencia de contaminación significativa por adaptadores, una distribución del contenido GC consistente y un contenido de bases por posición sin sesgos importantes.
+
+<img width="314" height="126" alt="image" src="https://github.com/user-attachments/assets/a5475c9c-ce0a-43f2-a1a1-0c383220dd93" />
+
+Informe para SRR31477438 tras realizada la limpieza.
 
 ---
 
