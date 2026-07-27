@@ -594,6 +594,115 @@ Informe para SRR31477438 tras realizada la limpieza.
 
 ---
 
+# ⚡ Filtrado y limpieza de lecturas con Fastp
+
+**Fastp** es otra alternativa dentro de las herramientas modernas y de alto rendimiento diseñadas para realizar el control de calidad y el preprocesamiento de lecturas de secuenciación masiva (NGS). En un único paso permite eliminar adaptadores, recortar regiones de baja calidad, filtrar lecturas cortas o de baja complejidad y generar reportes detallados de la calidad de los datos antes y después del filtrado.
+
+Fastp tambien detecta automáticamente las secuencias adaptadoras utilizadas en bibliotecas Illumina y otras tecnologias y genera un reporte interactivo en formato **HTML**, lo que facilita la evaluación del proceso de limpieza.
+
+---
+
+## Ejecutar Fastp
+
+```bash
+module load envs/anaconda3
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate fastp
+```
+
+Crear un directorio de trabajo:
+
+```bash
+mkdir filteredReads
+cd filteredReads
+```
+
+Ejecutar el análisis:
+
+```bash
+fastp \
+--in1 ../SRR31477438_R1.fastq.gz \
+--in2 ../SRR31477438_R2.fastq.gz \
+--out1 SRR31477438_R1_clean.fastq.gz \
+--out2 SRR31477438_R2_clean.fastq.gz \
+-l 50 \
+-h fastp_report.html \
+-j fastp_report.json \
+&> fastp.log
+```
+
+---
+
+## Explicación de los parámetros
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| `--in1` | Archivo FASTQ de las lecturas forward (R1). |
+| `--in2` | Archivo FASTQ de las lecturas reverse (R2). |
+| `--out1` | Nombre del archivo FASTQ limpio correspondiente a R1. |
+| `--out2` | Nombre del archivo FASTQ limpio correspondiente a R2. |
+| `-l 50` | Descarta las lecturas cuya longitud final sea menor de 50 pb. |
+| `-h` | Genera un reporte HTML con estadísticas antes y después del filtrado. |
+| `-j` | Produce un reporte en formato JSON con todas las métricas del análisis. |
+| `&>` | Redirige toda la salida del programa (estándar y errores) a un archivo de registro (`fastp.log`). |
+
+---
+
+## Funciones principales de Fastp
+
+### Eliminación automática de adaptadores
+
+Fastp identifica y elimina automáticamente las secuencias adaptadoras presentes en las lecturas, sin necesidad de especificar previamente la secuencia utilizada durante la preparación de la biblioteca.
+
+---
+
+### Recorte de regiones de baja calidad
+
+Las bases ubicadas en los extremos de las lecturas suelen presentar una disminución progresiva de la calidad. Fastp identifica estas regiones y las elimina antes del análisis posterior.
+
+---
+
+### Eliminación de colas PolyG
+
+Las plataformas **Illumina NextSeq** y **NovaSeq** utilizan un sistema de detección de dos colores que puede generar largas colas de guaninas (`GGGGGG...`) cuando la señal fluorescente desaparece al final de la lectura.
+
+Estas colas son artefactos de la secuenciación y pueden afectar negativamente el alineamiento contra un genoma de referencia. Fastp detecta y elimina automáticamente este tipo de secuencias cuando analiza datos provenientes de estas plataformas.
+
+---
+
+### Filtrado por longitud
+
+Después del recorte, algunas lecturas pueden quedar demasiado cortas para aportar información confiable.
+
+El parámetro
+
+```bash
+-l 50
+```
+
+indica que toda lectura con una longitud inferior a **50 pb** será descartada.
+
+---
+
+### Filtrado por calidad
+
+Fastp también elimina lecturas cuya calidad promedio es demasiado baja.
+
+Entre los parámetros más utilizados se encuentran:
+
+| Parámetro | Función |
+|-----------|----------|
+| `-q` | Calidad mínima Phred requerida para cada base (por defecto Q15). |
+| `-u` | Porcentaje máximo de bases que pueden estar por debajo del umbral de calidad. |
+| `-n` | Número máximo permitido de bases ambiguas (`N`). |
+
+Estos filtros ayudan a reducir la cantidad de errores introducidos durante la secuenciación.
+
+---
+
+La inspección de los reportes html es importante porque permite verificar que el proceso de limpieza mejoró la calidad general de los datos antes de continuar con los análisis bioinformáticos posteriores.
+
 # Próximo módulo
 
 Una vez obtenidas lecturas filtradas, aprenderemos a utilizarlas para **ensamblar genomas plastidiales mediante estrategias *de novo*** o para **alinearlas contra un genoma de referencia**, dependiendo de los objetivos del estudio.
