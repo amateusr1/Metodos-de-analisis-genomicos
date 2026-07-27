@@ -500,6 +500,85 @@ Una vez finalizado el proceso es recomendable ejecutar nuevamente **FastQC** sob
 - Se redujo la cantidad de secuencias sobre representadas.
 - Las lecturas conservadas mantienen una longitud adecuada para los análisis posteriores.
 
+  # 🧹 Limpieza de lecturas con Captus
+
+Además de **Trimmomatic**, **Captus** incorpora un módulo denominado **Clean**, diseñado para automatizar el preprocesamiento de lecturas. Este módulo integra varias etapas de limpieza en un único comando, incluyendo la eliminación de adaptadores, el filtrado de bases de baja calidad, la remoción de contaminantes (como PhiX) y la generación de reportes de calidad.
+
+Una ventaja de Captus es que reconoce automáticamente las lecturas pareadas, siempre que los archivos sigan una convención de nombres adecuada.
+
+## Convención de nombres
+
+Captus utiliza el nombre de los archivos para identificar las muestras y emparejar correctamente las lecturas **R1** y **R2**. Por ello, es recomendable asignar nombres claros y consistentes antes de iniciar cualquier análisis.
+
+### Recomendaciones
+
+- Utilizar únicamente letras, números, guiones (`-`) y guiones bajos (`_`).
+- Evitar espacios, caracteres especiales (`!`, `#`, `%`, `@`, etc.) y letras con acentos.
+- No utilizar dobles guiones bajos (`__`), ya que Captus los emplea internamente durante el procesamiento.
+- Las lecturas pareadas deben contener obligatoriamente los identificadores **`_R1`** y **`_R2`**.
+- Para datos *single-end* también debe utilizarse el sufijo **`_R1`**.
+- Utilizar extensiones válidas como `.fastq`, `.fastq.gz`, `.fq` o `.fq.gz`.
+
+### Ejemplos de nombres válidos
+
+```text
+Brosimum_alicastrum_COL01_R1.fastq.gz
+Brosimum_alicastrum_COL01_R2.fastq.gz
+```
+
+### Ejemplos de nombres no recomendados
+
+```text
+ERR246535_1.fastq.gz
+ERR246535_2.fastq.gz
+```
+## Ejecutar Captus Clean
+
+### Script SLURM
+
+```bash
+
+module load envs/anaconda3
+source $(conda info --base)/etc/profile.d/conda.sh
+
+conda activate captus_1.6.5
+
+captus clean \
+    -r *.fastq.gz \
+    -o clean \
+    --threads 16
+```
+
+---
+
+## Explicación de los parámetros
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| `clean` | Ejecuta el módulo de limpieza de Captus. |
+| `-r *.fastq.gz` | Selecciona todas las lecturas FASTQ presentes en el directorio. Captus identifica automáticamente los pares `R1` y `R2` a partir del nombre de los archivos. |
+| `-o clean` | Directorio donde se almacenarán las lecturas limpias y los reportes. |
+| `--threads 16` | Número de núcleos utilizados durante el procesamiento. |
+
+---
+
+## Estructura de salida
+
+Al finalizar el análisis se crea un directorio:
+
+```text
+clean/
+
+├── 00_adaptors_trimmed/
+├── 01_qc_stats_before/
+├── 02_qc_stats_after/
+├── 03_qc_extras/
+├── *.fastq.gz
+└── captus-clean.log
+```
+
+Las lecturas generadas en este directorio son las que se utilizan en los análisis posteriores.
+
 # Próximo módulo
 
 Una vez obtenidas lecturas filtradas, aprenderemos a utilizarlas para **ensamblar genomas plastidiales mediante estrategias *de novo*** o para **alinearlas contra un genoma de referencia**, dependiendo de los objetivos del estudio.
