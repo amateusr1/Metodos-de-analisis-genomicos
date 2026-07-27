@@ -8,55 +8,33 @@ Más que un conjunto de apuntes, este repositorio busca documentar paso a paso l
 
 > **Este repositorio se encuentra en constante construcción.**
 >
-> La idea fue llevar un diario técnico del curso, registrando cada flujo de trabajo conforme era aprendido y ejecutado. Por ello, el contenido continuará creciendo, mejorando y actualizándose con nuevas herramientas, explicaciones y ejemplos.
+> La idea fue llevar un diario técnico del curso, registrando cada flujo de trabajo (SCRIPT) conforme era aprendido y ejecutado, acompañado de un fuerte componente teorico para sentar las bases conceptuales inherentes a cada módulo. Por ello, el contenido continuará creciendo, mejorando y actualizándose con nuevas herramientas, explicaciones y ejemplos.
 
 ---
 
-## 🐧 Introducción a Linux
-Fundamentos del sistema operativo Linux para bioinformática: navegación, manejo de archivos, permisos, procesos, uso del clúster HPC y recomendaciones.
+- 🐧 **[01. Introducción a Linux](01-Introducción-a-Linux.md)**  
+  Introducción al uso de Linux y de clústeres HPC: comandos básicos, manejo de archivos, SLURM, ambientes, transferencia de archivos, permisos, recomendaciones y herramientas esenciales para el trabajo en bioinformática.
 
-➡️ **[Abrir módulo](Introducción-a-Linux.md)**
+- 📥 **[02. Descarga de datos SRA NCBI](02-Descarga-datos-SRA-NCBI.md)**  
+  Descarga de datos públicos de secuenciación desde el Sequence Read Archive (SRA) utilizando SRA Toolkit y organización de los archivos FASTQ.
 
----
+- 🧹 **[03. Exploración de calidad, filtrado y recorte de lecturas](03-Exploración_de_calidad_filtrado_recorte_de_lecturas.md)**  
+  Evaluación de la calidad de las lecturas con FastQC y MultiQC, limpieza de datos utilizando Trimmomatic, Fastp y Captus Clean.
 
-## ⬇️ Descarga de datos desde el SRA
-Obtención de datos de secuenciación desde el NCBI utilizando SRA Toolkit y organización de proyectos de análisis.
+- 🌿 **[04. Ensamblaje de Novo Plastoma](04-Ensamblaje-de-Novo-Plastoma.md)**  
+  Ensamblaje *de novo* de genomas plastidiales a partir de lecturas Illumina.
 
-➡️ **[Abrir módulo](Descarga-datos-SRA-NCBI.md)**
+- 🧬 **[05. NGS Data Analysis - Mapping](05-NGS Data Analysis - Mapping.md)**  
+  Alineamiento de lecturas contra un genoma de referencia, procesamiento de archivos BAM y evaluación de la calidad del mapeo.
 
----
+- 🔬 **[06. NGS Data Analysis - Variant Calling](06-NGS Data Analysis - Variant Calling.md)**  
+  Identificación y filtrado de variantes genómicas mediante GATK, generación de archivos GVCF y genotipificación conjunta.
 
-## 🌿 Ensamblaje *de novo* de plastomas
-Flujo completo para el ensamblaje de genomas plastidiales a partir de lecturas Illumina, incluyendo control de calidad, ensamblaje y evaluación de resultados.
+- 📊 **[07. Estadísticas de diversidad genética - Pixy](07-Estadisticas_diversidad_genética_Pixy)**  
+  Cálculo de estadísticas de diversidad genética como π, dXY y FST utilizando Pixy a partir de archivos VCF filtrados.
 
-➡️ **[Abrir módulo](Ensamblaje-de-Novo-Plastoma.md)**
+- 🌎 **[08. NGS Data Analysis - RADseq](08-NGS_Data_Analysis-RADseq.md)**  
+  Introducción a los datos de representación reducida (RADseq/GBS), procesamiento de variantes y aplicaciones en genética de poblaciones.
 
----
-
-## 🧬 NGS Data Analysis – Mapping
-Pipeline de alineamiento basado en BWA-MEM2, Samtools y herramientas complementarias para la preparación de archivos BAM de alta calidad.
-
-➡️ **[Abrir módulo](NGS%20Data%20Analysis%20-%20Mapping.md)**
-
----
-
-## 🔬 NGS Data Analysis – Variant Calling
-Proceso completo de identificación y filtrado de variantes utilizando GATK, incluyendo HaplotypeCaller, GenomicsDB, GenotypeGVCFs.
-
-➡️ **[Abrir módulo](NGS%20Data%20Analysis%20-%20Variant%20Calling.md)**
-
----
-
-## 🌱 RADseq
-Introducción a las metodologías RADseq/GBS y análisis de diversidad genética, estructura poblacional y estadísticos poblacionales.
-
-➡️ **[Abrir módulo](RADseq.md)**
-
----
-
-# 🎯 Objetivo del repositorio
-
-- Documentar flujos de trabajo reproducibles en bioinformática.
-- Servir como material de consulta para estudiantes e investigadores.
-- Compartir ejemplos prácticos utilizando datos reales y simulados.
-- Construir una referencia abierta que continúe creciendo con nuevos módulos y herramientas.
+- 💬 **[09. Foro de discusión](09-Foro_discusión.md)**  
+  Espacio destinado a preguntas, ejercicios y discusión de conceptos abordados durante el curso.
