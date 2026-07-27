@@ -305,12 +305,12 @@ SRR31477438_R1_fastqc.zip
 
 FastQC genera un reporte en formato **HTML**, que puede abrirse directamente desde cualquier navegador web. Cuando el análisis se ejecuta en un clúster HPC, lo más práctico es descargar únicamente los archivos `.html`, ya que contienen toda la información necesaria para interpretar los resultados.
 
-La transferencia puede realizarse mediante herramientas como `scp` o `rsync`.
+La transferencia puede realizarse mediante herramientas como `scp` o `rsync`. LA DESCARGA SE REALIZA DESDE SU TERMINAL LOCAL NO DESDE EL INTERIOR DEL CLUSTER.
 
 Ejemplo utilizando `scp`:
 
 ```bash
-scp usuario@servidor:/ruta/FastQC/*_fastqc.html .
+ scp -J amateusr@168.176.8.19 "amateusr@hercules2:/scratchsan/amateusr/outs*_fastqc.html" "C:\Users\ASUS\Downloads\"
 ```
 
 Una vez descargados, basta con abrir los archivos en el navegador de su computador haciendo doble clic sobre ellos.
