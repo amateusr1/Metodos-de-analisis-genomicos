@@ -544,11 +544,16 @@ source $(conda info --base)/etc/profile.d/conda.sh
 conda activate captus_1.6.5
 
 captus clean \
-    -r *.fastq.gz \
+    -r *.fastq.gz \ 
     -o clean \
     --threads 16
 ```
+El único argumento obligatorio es la ubicación de las lecturas crudas.
 
+```bash
+captus clean \
+    --reads ./00_raw_reads/*_CAP_R?.fq.gz
+```
 ---
 
 ## Explicación de los parámetros
@@ -564,20 +569,21 @@ captus clean \
 
 ## Estructura de salida
 
-Al finalizar el análisis se crea un directorio:
+Al finalizar la ejecución, Captus crea un directorio denominado `01_clean_reads`, que contiene tanto las lecturas limpias como los reportes generados durante el proceso.
 
-```text
-clean/
+| Archivo o directorio | Descripción |
+|-----------------------|-------------|
+| **00_adaptors_trimmed/** | Archivos intermedios tras la eliminación de adaptadores. |
+| **Sample_R1.fq.gz / Sample_R2.fq.gz** | Lecturas limpias que serán utilizadas en los análisis posteriores. |
+| **Sample.cleaning.log** | Registro detallado de la limpieza realizada para cada muestra. |
+| **Sample.cleaning.stats.txt** | Resumen de los contaminantes detectados y eliminados durante el filtrado. |
+| **01_qc_stats_before/** | Resultados de FastQC/Falco antes de la limpieza. |
+| **02_qc_stats_after/** | Resultados de FastQC/Falco después de la limpieza. |
+| **03_qc_extras/** | Tablas con estadísticas detalladas utilizadas para construir el reporte final. |
+| **captus-clean_report.html** | Reporte interactivo que resume la calidad de todas las muestras procesadas. |
+| **captus-clean.log** | Registro general de la ejecución de Captus. |
 
-├── 00_adaptors_trimmed/
-├── 01_qc_stats_before/
-├── 02_qc_stats_after/
-├── 03_qc_extras/
-├── *.fastq.gz
-└── captus-clean.log
-```
-
-Las lecturas generadas en este directorio son las que se utilizan en los análisis posteriores.
+---
 
 # Próximo módulo
 
