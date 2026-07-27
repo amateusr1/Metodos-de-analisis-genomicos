@@ -27,7 +27,7 @@ Más que un conjunto de apuntes, este repositorio busca documentar paso a paso l
 - 🧬 **[05. NGS Data Analysis - Mapping](05-NGS_Data_Analysis_Mapping.md)**  
   Alineamiento de lecturas contra un genoma de referencia, procesamiento de archivos BAM y evaluación de la calidad del mapeo.
 
-- 🔬 **[06. NGS Data Analysis - Variant Calling](06-NGS Data Analysis - Variant Calling.md)**  
+- 🔬 **[06. NGS Data Analysis - Variant Calling](06-NGS_Data_Analysis_Variant_Calling.md)**  
   Identificación y filtrado de variantes genómicas mediante GATK, generación de archivos GVCF y genotipificación conjunta.
 
 - 📊 **[07. Estadísticas de diversidad genética - Pixy](07-Estadisticas_diversidad_genética_Pixy)**  
