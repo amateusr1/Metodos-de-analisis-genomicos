@@ -1,4 +1,4 @@
-# 🧹 Control de calidad y limpieza de lecturas NGS
+# 🧹 Exploración de calidad, filtrado y recorte de lecturas
 
 > **Autor:** Andrey Mateus-Ruiz  
 > **Curso:** Métodos de Análisis de Datos Genómicos (2018846-6)  
