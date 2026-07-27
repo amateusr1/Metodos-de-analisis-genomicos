@@ -4,7 +4,7 @@ Bienvenid@ a este repositorio, una bitácora de trabajo dedicada al análisis de
 
 Este proyecto fue creado por **Andrey Mateus-Ruiz** como parte del curso de la Maestría en Ciencias - Biología **Métodos de Análisis de Datos Genómicos (2018846-6)** de la **Universidad Nacional de Colombia**, dictado por el **Ph.D. Gustavo Silva-Arias**.
 
-Más que un conjunto de apuntes, este repositorio busca documentar paso a paso los análisis realizados durante el curso: desde la descarga de datos y el manejo de Linux hasta el ensamblaje de genomas, el análisis de variantes y los estudios de diversidad genética. Cada módulo reúne comandos, explicaciones, resultados, recomendaciones y notas obtenidas durante el proceso de aprendizaje.
+Más que un conjunto de apuntes, este repositorio busca documentar paso a paso los análisis realizados durante el curso: desde la descarga de datos y el manejo de Linux hasta el ensamblaje de genomas, el llamado de variantes y los análisis de diversidad genética. Cada módulo reúne comandos, explicaciones, resultados, recomendaciones y notas obtenidas durante el proceso de aprendizaje.
 
 > **Este repositorio se encuentra en constante construcción.**
 >
