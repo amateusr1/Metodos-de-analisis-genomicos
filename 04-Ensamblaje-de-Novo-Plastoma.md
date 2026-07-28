@@ -37,11 +37,9 @@ En este módulo se procesaron tres muestras de *Solanum sección lycopersicum* s
 Todos los análisis se ejecutaron en el clúster de cómputo HPC perteneciente a la Facultad de Ciencias de la Universidad Nacional de Colombia mediante scripts SLURM, utilizando el gestor de paquetes Conda y entornos virtuales asociados. La instalación y resolución de dependencias se ejecuto a través de Anaconda, Miniconda o Mamba.
 
 ```
-
 # Carga del módulo de conda
 module load envs/anaconda3
 source /scratchsan1/anaconda3/etc/profile.d/conda.sh
-
 ```
 ---
 ## Enriquecimineto con ADN plastidial 
@@ -49,8 +47,6 @@ source /scratchsan1/anaconda3/etc/profile.d/conda.sh
 Las lecturas obtenidas mediante secuenciación Illumina fueron sometidas inicialmente a un proceso de enriquecimiento para recuperar únicamente aquellas correspondientes al genoma del cloroplasto. Para ello, se alinearon las lecturas pareadas contra un genoma de referencia plastidial Solanum lycopersicum chloroplast, complete genome-NC_007898.3 utilizando BBMap. Como resultado de este paso, se extrajeron exclusivamente los pares de lecturas que presentaron alineamientos con el genoma plastidial de referencia, reduciendo considerablemente la presencia de otras secuencias y el tamaño de los archivos.
 
 ```
-
-1. BBMap
 bbmap.sh ref=Slycopersicum_chloroplast.fasta \
 in1=reads_1.fastq.gz \
 in2=reads_2.fastq.gz \
@@ -58,7 +54,6 @@ in2=reads_3.fastq.gz \
 outm1=chloroplast_1.fastq.gz \
 outm2=chloroplast_1.fastq.gz \
 outm3=chloroplast_2.fastq.gz
-
 ```
 
 Aquí BBMap:
@@ -74,8 +69,14 @@ Descartó las lecturas que provenían del genoma nuclear o mitocondrial.
 Las lecturas enriquecidas fueron utilizadas como entrada para GetOrganelle, software especializado en el ensamblaje de genomas de organelos. Se empleó el modo embplant_pt, diseñado específicamente para genomas de cloroplastos de plantas terrestres. GetOrganelle realiza un reclutamiento iterativo de lecturas plastidiales y construye el ensamblaje mediante el algoritmo de gráficos de De Bruijn implementado en SPAdes, eliminando ramas espurias y resolviendo repeticiones para obtener un ensamblaje plastidial de alta calidad.
 
 ```
-
-
+for sample in SRR38359005 SRR31477438 SRR37254991; do
+get_organelle_from_reads.py \
+-1 chloro_R1.fastq.gz \
+-2 chloro_R2.fastq.gz \
+-3 chloro_R3.fastq.gz \
+-o /scratchsan/amateusr/outs/getorganelle/${sample}_chloro \
+-F embplant_pt
+```
 
 
 
