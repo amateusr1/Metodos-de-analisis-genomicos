@@ -41,5 +41,5 @@ Más que un conjunto de apuntes, este repositorio busca documentar paso a paso l
 
   # Contenidos adicionales
 
-  - 🧬 **[10. Aligning ARN data](10-Aligning-other-type-data_RNA.md)**  
+- 🧬 **[10. Aligning ARN data](10-Aligning_other_type_data_RNA.md)**  
   Introducción al análisis de datos de RNA-seq, incluyendo el alineamiento de lecturas, expresión génica y consideraciones para estudios de transcriptómica.
