@@ -50,3 +50,66 @@ bbmap.sh ref=/scratchsan/amateusr/Slycopersicum_chloroplast.fasta \
     outm2=/scratchsan/amateusr/chloroplast_2.fastq.gz \
     fast=t \
     threads=4
+
+    # Your script goes here
+
+module load envs/anaconda3
+conda activate sratools
+
+for sample in SRR38359005 SRR31477438; do
+    get_organelle_from_reads.py \
+        -1 /scratchsan/amateusr/clean/${sample}_chloro_R1.fastq.gz \
+        -2 /scratchsan/amateusr/clean/${sample}_chloro_R2.fastq.gz \
+        -o /scratchsan/amateusr/clean/getorganelle/${sample}_chloro \
+        -F embplant_pt
+done
+
+# ── Rutas ──────────────────────────────────────────────────
+IN1=/scratchsan/amateusr/secuences/chloroplast_1.fastq.gz
+IN2=/scratchsan/amateusr/secuences/chloroplast_2.fastq.gz
+SUB1=/scratchsan/amateusr/secuences/chloro_sub_1.fastq.gz
+SUB2=/scratchsan/amateusr/secuences/chloro_sub_2.fastq.gz
+OUTDIR=/scratchsan/amateusr/outs
+
+# ── Módulos ────────────────────────────────────────────────
+module load apps/spades/3.15.4
+module load apps/bbmap/38.34        # ajusta el nombre exacto si es diferente
+
+# ── Paso 1: Submuestreo a ~200x (200,000 reads) ────────────
+echo "MESSAGE: Submuestreando reads..."
+
+reformat.sh \
+  in1=$IN1 \
+  in2=$IN2 \
+  out1=$SUB1 \
+  out2=$SUB2 \
+  samplereadstarget=200000 \
+  sampleseed=42 \
+  threads=16
+
+echo "MESSAGE: Reads en SUB1: $(zcat $SUB1 | awk 'NR%4==1' | wc -l)"
+echo "MESSAGE: Reads en SUB2: $(zcat $SUB2 | awk 'NR%4==1' | wc -l)"
+
+# ── Paso 2: Limpiar output anterior ────────────────────────
+
+# ── Paso 3: Correr SPAdes ──────────────────────────────────
+echo "MESSAGE: Iniciando SPAdes..."
+
+spades.py \
+  --careful \
+  -1 $SUB1 \
+  -2 $SUB2 \
+  -o $OUTDIR \
+  -t 16 \
+  -m 60
+
+# ── Paso 4: Verificar resultado ────────────────────────────
+if [ -f "$OUTDIR/scaffolds.fasta" ]; then
+    echo "MESSAGE: ¡Ensamble exitoso!"
+    echo "MESSAGE: Scaffolds generados:"
+    grep "^>" $OUTDIR/scaffolds.fasta | head -10
+    echo "MESSAGE: Total de scaffolds: $(grep -c '^>' $OUTDIR/scaffolds.fasta)"
+else
+    echo "ERROR: No se generó scaffolds.fasta — revisa $OUTDIR/spades.log"
+fi
+
