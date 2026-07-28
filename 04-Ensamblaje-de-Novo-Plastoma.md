@@ -97,7 +97,7 @@ Un cloroplasto suele tener coberturas muy altas (500×, 1000× o incluso mayores
 
 Como estrategia complementaria, también se realizó un ensamblaje directo utilizando SPAdes . Antes del ensamblaje se efectuó un submuestreo aleatorio de aproximadamente 200 000 pares de lecturas mediante reformat.sh(BBTools), con el fin de obtener una cobertura cercana a 200×, suficiente para ensamblar el genoma plastidial y reducir el costo computacional asociado a coberturas excesivamente altas.
 
-### Sudmuestreo con Reformat (BBTools)
+### Submuestreo con Reformat (BBTools)
 
 Este comando tomó una muestra aleatoria de aproximadamente 200.000 pares de lecturas, sin modificar las secuencias, unicamente se redujo el número de reads.
 
@@ -113,6 +113,8 @@ reformat.sh \
   sampleseed=42 \
   threads=16
 ```
+### Ensamblaje del cloroplasto con SPAdes
+
 Finalmente se realizo el ensamblaje del cloroplasto con SPAdes. La opción --careful realiza una etapa adicional de corrección para reducir errores de ensamblaje producidos por errores de secuenciación, disminuyendo la cantidad de sustituciones e indels en los contigs finales.
 ```
 spades.py \
