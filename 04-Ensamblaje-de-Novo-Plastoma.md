@@ -28,6 +28,57 @@ BBMap es un alineador de lecturas cortas rápido y preciso para datos de secuenc
 
 Se descargaron lecturas pareadas de ILLUMINA WGS de genoma completo de solanum pimpinellifolium. Estas se mapearon contra el genoma completo de cloroplastop de solanum lycopersicum var lycopersicum como referencia para hacer unicamente el llamdo de las secuencias de cloroplasto de pimpinellifolium. El comando para mapear y extraer solo las lecturas plastidiales de lecturas de genoma completo WGS es:
 
+# Un flujo de trabajo completo para el ensamblaje del genoma del cloroplasto
+
+En este módulo se procesaron tres muestras de *Solanum sección lycopersicum* secuenciadas por WGS con Illumina: una accesión de *S. lycopersicum var. cerasiforme* (SLC; SRR31477438), una accesión de *S. lycopersicum var. lycopersicum* (LA1924; SRR38359005) y una accesión de *S. pimpinellifolium* (SRR37254991), mapeadas contra el genoma de referencia del tomate cultivado (*S. lycopersicum var. lycopersicum* Micro-Tom, ensamblaje SLM_r2.1 (GCF_036512215.1; 832.8 Mb). Las lecturas WGS de las muestras fueron descargadas desde la base de datos SRA del NCBI usando fasterq-dump, en formato FASTA.
+
+---
+
+Todos los análisis se ejecutaron en el clúster de cómputo HPC perteneciente a la Facultad de Ciencias de la Universidad Nacional de Colombia mediante scripts SLURM, utilizando el gestor de paquetes Conda y entornos virtuales asociados. La instalación y resolución de dependencias se ejecuto a través de Anaconda, Miniconda o Mamba.
+
+```
+
+# Carga del módulo de conda
+module load envs/anaconda3
+source /scratchsan1/anaconda3/etc/profile.d/conda.sh
+
+```
+---
+## Enriquecimineto con ADN plastidial 
+
+Las lecturas obtenidas mediante secuenciación Illumina fueron sometidas inicialmente a un proceso de enriquecimiento para recuperar únicamente aquellas correspondientes al genoma del cloroplasto. Para ello, se alinearon las lecturas pareadas contra un genoma de referencia plastidial Solanum lycopersicum chloroplast, complete genome-NC_007898.3 utilizando BBMap. Como resultado de este paso, se extrajeron exclusivamente los pares de lecturas que presentaron alineamientos con el genoma plastidial de referencia, reduciendo considerablemente la presencia de otras secuencias y el tamaño de los archivos.
+
+```
+
+1. BBMap
+bbmap.sh ref=Slycopersicum_chloroplast.fasta \
+in1=reads_1.fastq.gz \
+in2=reads_2.fastq.gz \
+in2=reads_3.fastq.gz \
+outm1=chloroplast_1.fastq.gz \
+outm2=chloroplast_1.fastq.gz \
+outm3=chloroplast_2.fastq.gz
+
+```
+
+Aquí BBMap:
+
+Indexó el genoma del cloroplasto;
+Comparó cada par de lecturas contra esa referencia;
+Conservó únicamente los pares que alineaban;
+Descartó las lecturas que provenían del genoma nuclear o mitocondrial.
+
+---
+# Ensamblaje del cloroplasto con GetOrganelle
+
+Las lecturas enriquecidas fueron utilizadas como entrada para GetOrganelle, software especializado en el ensamblaje de genomas de organelos. Se empleó el modo embplant_pt, diseñado específicamente para genomas de cloroplastos de plantas terrestres. GetOrganelle realiza un reclutamiento iterativo de lecturas plastidiales y construye el ensamblaje mediante el algoritmo de gráficos de De Bruijn implementado en SPAdes, eliminando ramas espurias y resolviendo repeticiones para obtener un ensamblaje plastidial de alta calidad.
+
+```
+
+
+
+
+
 #!/bin/bash
 #SBATCH --job-name=bbmap
 #SBATCH --nodelist=hercules4
