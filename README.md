@@ -38,3 +38,8 @@ Más que un conjunto de apuntes, este repositorio busca documentar paso a paso l
 
 - 💬 **[09. Foro de discusión](09-Foro_discusión.md)**  
   Espacio destinado a preguntas, ejercicios y discusión de conceptos abordados durante el curso.
+
+  # Contenidos adicionales
+
+  - 🧬 **[10. Aligning ARN data](10-Aligning-other-type-data_RNA.md)**  
+  Introducción al análisis de datos de RNA-seq, incluyendo el alineamiento de lecturas, expresión génica y consideraciones para estudios de transcriptómica.
