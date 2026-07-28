@@ -126,4 +126,8 @@ spades.py \
   -t 16 \
   -m 60
 ```
+<img width="410" height="335" alt="image" src="https://github.com/user-attachments/assets/80ed2979-0fc3-4d28-80f3-1343150c74d6" />
+
+<img width="405" height="410" alt="image" src="https://github.com/user-attachments/assets/29a8f6d7-883c-47c3-a00b-02973869fdbf" />
+
 
