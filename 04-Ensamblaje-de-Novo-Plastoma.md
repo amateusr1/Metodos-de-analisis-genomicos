@@ -41,6 +41,17 @@ Todos los análisis se ejecutaron en el clúster de cómputo HPC perteneciente a
 module load envs/anaconda3
 source /scratchsan1/anaconda3/etc/profile.d/conda.sh
 ```
+Se definieron las rutas a los archivos antes de correr los análisis
+
+```
+IN1=/scratchsan/amateusr/secuences/chloroplast_1.fastq.gz
+IN2=/scratchsan/amateusr/secuences/chloroplast_2.fastq.gz
+IN3=/scratchsan/amateusr/secuences/chloroplast_3.fastq.gz
+SUB1=/scratchsan/amateusr/secuences/chloro_sub_1.fastq.gz
+SUB2=/scratchsan/amateusr/secuences/chloro_sub_2.fastq.gz
+SUB3=/scratchsan/amateusr/secuences/chloro_sub_2.fastq.gz
+OUTDIR=/scratchsan/amateusr/outs/getOrganell
+```
 ---
 ## Enriquecimineto con ADN plastidial 
 
@@ -64,7 +75,7 @@ Conservó únicamente los pares que alineaban;
 Descartó las lecturas que provenían del genoma nuclear o mitocondrial.
 
 ---
-# Ensamblaje del cloroplasto con GetOrganelle
+## Ensamblaje del cloroplasto con GetOrganelle
 
 Las lecturas enriquecidas fueron utilizadas como entrada para GetOrganelle, software especializado en el ensamblaje de genomas de organelos. Se empleó el modo embplant_pt, diseñado específicamente para genomas de cloroplastos de plantas terrestres. GetOrganelle realiza un reclutamiento iterativo de lecturas plastidiales y construye el ensamblaje mediante el algoritmo de gráficos de De Bruijn implementado en SPAdes, eliminando ramas espurias y resolviendo repeticiones para obtener un ensamblaje plastidial de alta calidad.
 
@@ -77,91 +88,40 @@ get_organelle_from_reads.py \
 -o /scratchsan/amateusr/outs/getorganelle/${sample}_chloro \
 -F embplant_pt
 ```
+GetOrganelle no solo ensambla, produce un ensamblaje mucho más limpio que ejecutar SPAdes directamente para el ensamblaje de organelos. Internamente realiza: el reclutamiento iterativo de lecturas del organelo, comparando nuestras lecturas contras una lista de genomas plkastidiales de referencia de varias especies; construye el grafo de De Bruijn mediante SPAdes; elimina los caminos incorrectos; realiza la resolución de repeticiones y finalmente, la identificación de la estructura circular del cloroplasto.
 
+---
+## Ensamblaje del cloroplasto directamente con SPAdes
 
+Un cloroplasto suele tener coberturas muy altas (500×, 1000× o incluso mayores), y utilizar todas las lecturas aumenta el tiempo de ejecución y el consumo de memoria sin mejorar significativamente el ensamblaje. Una cobertura alrededor de 100–200× suele ser suficiente para reconstruir de forma confiable un genoma plastidial. 
 
-#!/bin/bash
-#SBATCH --job-name=bbmap
-#SBATCH --nodelist=hercules4
-#SBATCH --clusters=biocomputo
-#SBATCH --partition=cpu.cecc
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=4
-#SBATCH --output=bbmap_%j.out
-#SBATCH --error=bbmap_%j.err
+Como estrategia complementaria, también se realizó un ensamblaje directo utilizando SPAdes . Antes del ensamblaje se efectuó un submuestreo aleatorio de aproximadamente 200 000 pares de lecturas mediante reformat.sh(BBTools), con el fin de obtener una cobertura cercana a 200×, suficiente para ensamblar el genoma plastidial y reducir el costo computacional asociado a coberturas excesivamente altas.
 
-module load envs/anaconda3
-source $(conda info --base)/etc/profile.d/conda.sh
-conda activate captus_1.6.5
+### Sudmuestreo con Reformat (BBTools)
 
-bbmap.sh ref=/scratchsan/amateusr/Slycopersicum_chloroplast.fasta \
-    in1=/scratchsan/amateusr/SRR38359005_1.fastq.gz \
-    in2=/scratchsan/amateusr/SRR38359005_2.fastq.gz \
-    outm1=/scratchsan/amateusr/chloroplast_1.fastq.gz \
-    outm2=/scratchsan/amateusr/chloroplast_2.fastq.gz \
-    fast=t \
-    threads=4
+Este comando tomó una muestra aleatoria de aproximadamente 200.000 pares de lecturas, sin modificar las secuencias, unicamente se redujo el número de reads.
 
-    # Your script goes here
-
-module load envs/anaconda3
-conda activate sratools
-
-for sample in SRR38359005 SRR31477438; do
-    get_organelle_from_reads.py \
-        -1 /scratchsan/amateusr/clean/${sample}_chloro_R1.fastq.gz \
-        -2 /scratchsan/amateusr/clean/${sample}_chloro_R2.fastq.gz \
-        -o /scratchsan/amateusr/clean/getorganelle/${sample}_chloro \
-        -F embplant_pt
-done
-
-# ── Rutas ──────────────────────────────────────────────────
-IN1=/scratchsan/amateusr/secuences/chloroplast_1.fastq.gz
-IN2=/scratchsan/amateusr/secuences/chloroplast_2.fastq.gz
-SUB1=/scratchsan/amateusr/secuences/chloro_sub_1.fastq.gz
-SUB2=/scratchsan/amateusr/secuences/chloro_sub_2.fastq.gz
-OUTDIR=/scratchsan/amateusr/outs
-
-# ── Módulos ────────────────────────────────────────────────
-module load apps/spades/3.15.4
-module load apps/bbmap/38.34        # ajusta el nombre exacto si es diferente
-
-# ── Paso 1: Submuestreo a ~200x (200,000 reads) ────────────
-echo "MESSAGE: Submuestreando reads..."
-
+```
 reformat.sh \
   in1=$IN1 \
   in2=$IN2 \
+  in3=$IN2 \
   out1=$SUB1 \
   out2=$SUB2 \
+  out3=$SUB2 \
   samplereadstarget=200000 \
   sampleseed=42 \
   threads=16
-
-echo "MESSAGE: Reads en SUB1: $(zcat $SUB1 | awk 'NR%4==1' | wc -l)"
-echo "MESSAGE: Reads en SUB2: $(zcat $SUB2 | awk 'NR%4==1' | wc -l)"
-
-# ── Paso 2: Limpiar output anterior ────────────────────────
-
-# ── Paso 3: Correr SPAdes ──────────────────────────────────
-echo "MESSAGE: Iniciando SPAdes..."
-
+```
+Finalmente se realizo el ensamblaje del cloroplasto con SPAdes. La opción --careful realiza una etapa adicional de corrección para reducir errores de ensamblaje producidos por errores de secuenciación, disminuyendo la cantidad de sustituciones e indels en los contigs finales.
+```
 spades.py \
   --careful \
   -1 $SUB1 \
   -2 $SUB2 \
+  -3 $SUB3 \
   -o $OUTDIR \
   -t 16 \
   -m 60
-
-# ── Paso 4: Verificar resultado ────────────────────────────
-if [ -f "$OUTDIR/scaffolds.fasta" ]; then
-    echo "MESSAGE: ¡Ensamble exitoso!"
-    echo "MESSAGE: Scaffolds generados:"
-    grep "^>" $OUTDIR/scaffolds.fasta | head -10
-    echo "MESSAGE: Total de scaffolds: $(grep -c '^>' $OUTDIR/scaffolds.fasta)"
-else
-    echo "ERROR: No se generó scaffolds.fasta — revisa $OUTDIR/spades.log"
-fi
+```
 
