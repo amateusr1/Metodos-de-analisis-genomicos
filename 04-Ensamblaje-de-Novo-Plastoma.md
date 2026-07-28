@@ -126,6 +126,15 @@ spades.py \
   -t 16 \
   -m 60
 ```
+---
+
+#Visualización del grafos de ensamblaje
+
+Una vez obtenido el ensamblaje del genoma del cloroplasto mediante GetOrganelle, los grafos de ensamblaje fueron visualizados utilizando Bandage (a Bioinformatics Application for Navigating De novo Assembly Graphs Easily). Esta herramienta permitió inspeccionar la estructura del grafo generado por SPAdes, identificar posibles bifurcaciones o regiones repetitivas y verificar la continuidad del ensamblaje plastidial.
+
+Para orientar la interpretación del grafo y resolver la disposición correcta de las regiones repetidas, se realizaron búsquedas de similitud mediante BLAST utilizando genes plastidiales conservados, como matK y ndhF, los cuales fueron localizados dentro del grafo de ensamblaje. La posición de estos genes permitió identificar la orientación de los contigs y confirmar la estructura típica del genoma del cloroplasto, facilitando la resolución de la molécula circular y de las regiones invertidas repetidas (IR).
+
+Una vez resuelto el grafo, Bandage permitió extraer directamente la secuencia correspondiente al recorrido seleccionado (Extract sequence), generando un archivo en formato FASTA que representa el genoma completo del cloroplasto.
 <img width="410" height="335" alt="image" src="https://github.com/user-attachments/assets/80ed2979-0fc3-4d28-80f3-1343150c74d6" />
 
 <img width="405" height="410" alt="image" src="https://github.com/user-attachments/assets/29a8f6d7-883c-47c3-a00b-02973869fdbf" />
