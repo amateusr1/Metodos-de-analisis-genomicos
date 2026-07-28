@@ -377,6 +377,26 @@ samtools index $OUT/SRR38359005.markdup.bam
 samtools index $OUT/SRR37254991.markdup.bam
 
 ```
+GATK4 Trae incorpórado el programa pikard y automatiza parte del proceso, pero si quisieramos correr el programa pikard solo podríamos utilizar el siguiente script:
+
+```
+ conda activate picard
+
+ picard MarkDuplicates REMOVE_DUPLICATES=true \
+ ASSUME_SORTED=true VALIDATION_STRINGENCY=SILENT \
+ MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000 \
+ INPUT=wgs1_sort.bam \
+ OUTPUT=wgs1.sort.rmd.bam \
+ METRICS_FILE=wgs1.rmd.bam.metrics
+
+conda activate samtools
+samtools index *.rmd.bam
+conda deactivate
+
+```
+
+Al final del marcado de duplicados hay que indexar el nuevo BAM con Samtools
+
 GATK Best Practices generalmente confía en el alineamiento de BWA-MEM y utiliza la información del MAPQ durante el llamado de variantes, por lo que no siempre recomienda un filtrado previo. Sin embargo, en muchos casos es común eliminar lecturas con MAPQ < 20 o MAPQ < 30 para reducir alineamientos ambiguos, especialmente en regiones repetitivas, antes de realizar el llamado de variantes.
 
 Una forma sencilla de ver la distribución del MAPQ es con samtools stats:
