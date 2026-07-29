@@ -2,9 +2,10 @@
 
 > **Autor:** Andrey Mateus-Ruiz  
 > **Curso:** Métodos de Análisis Genómicos
-
 > **Profesor:** Ph.D. Gustavo Silva-Arias  
 > **Universidad Nacional de Colombia**
+
+---
 
 > **Nota**
 >
