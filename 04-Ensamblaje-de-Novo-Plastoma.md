@@ -128,7 +128,7 @@ spades.py \
 ```
 ---
 
-#Visualización del grafos de ensamblaje
+# Visualización del grafos de ensamblaje
 
 Una vez obtenido el ensamblaje del genoma del cloroplasto mediante GetOrganelle, los grafos de ensamblaje fueron visualizados utilizando Bandage (a Bioinformatics Application for Navigating De novo Assembly Graphs Easily). Esta herramienta permitió inspeccionar la estructura del grafo generado por SPAdes, identificar posibles bifurcaciones o regiones repetitivas y verificar la continuidad del ensamblaje plastidial.
 
