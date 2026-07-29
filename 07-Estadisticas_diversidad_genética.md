@@ -1,3 +1,25 @@
+# Estadísticas de Diversidad Genética: Fundamentos y Herramientas de Cálculo
+
+> **Autor:** Andrey Mateus-Ruiz  
+> **Curso:** Métodos de Análisis Genómicos
+> **Profesor:** Ph.D. Gustavo Silva-Arias  
+> **Universidad Nacional de Colombia**
+
+> **Nota**
+>
+> Este documento se encuentra en constante construcción y actualización. Su objetivo es servir como una bitácora técnica y un recurso de consulta donde se documentan los comandos, scripts, metodologías y resultados desarrollados durante el curso. A medida que continúe profundizando en los temas y adquiriendo nueva experiencia, el repositorio seguirá incorporando nuevos contenidos, ejemplos y mejoras.
+
+---
+
+La diversidad genética es la materia prima sobre la que actúa la selección natural, la deriva génica y la adaptación. Cuantificarla no es un simple ejercicio descriptivo: permite inferir la historia demográfica de una especie, flujo génico entre poblaciones y señales de selección. En estudios de evolución, biogeografía o genética de poblaciones estas métricas son la base para contrastar hipótesis sobre rutas de dispersión, introgresión y diferenciación adaptativa local, etc.
+
+Este documento busca introducir a las principales estadísticas de diversidad genética, la importancia de calcularlas, los programas recomendados según el tamaño y tipo de datos: DnaSP y Arlequin para conjuntos de datos pequeños (secuencias Sanger, pocos loci, microsatélites), y VCFtools/pixy junto con paquetes de R para datos masivos derivados de secuenciación de nueva generación (WGS, RADseq, etc.), y más importante aún como interpretarlas. 
+
+
+
+
+
+
 # VCFTOOLS Y R TAMBIEN INCLUIR
 
 07. Estadísticas de diversidad genética con Pixy
