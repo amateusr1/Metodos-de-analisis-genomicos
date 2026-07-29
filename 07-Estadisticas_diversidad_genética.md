@@ -1,4 +1,6 @@
-# 07. Estadísticas de diversidad genética con Pixy
+# VCFTOOLS Y R TAMBIEN INCLUIR
+
+07. Estadísticas de diversidad genética con Pixy
 
 ## Introducción
 
