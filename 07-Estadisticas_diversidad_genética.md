@@ -1,16 +1,17 @@
 # Estadísticas de Diversidad Genética: Fundamentos y Herramientas de Cálculo
 
 > **Autor:** Andrey Mateus-Ruiz  
-> **Curso:** Métodos de Análisis Genómicos
+> **Curso:** Métodos de Análisis Genómicos (2018846-6)  
 > **Profesor:** Ph.D. Gustavo Silva-Arias  
 > **Universidad Nacional de Colombia**
-
 
 > **Nota**
 >
 > Este documento se encuentra en constante construcción y actualización. Su objetivo es servir como una bitácora técnica y un recurso de consulta donde se documentan los comandos, scripts, metodologías y resultados desarrollados durante el curso. A medida que continúe profundizando en los temas y adquiriendo nueva experiencia, el repositorio seguirá incorporando nuevos contenidos, ejemplos y mejoras.
 
 ---
+
+# Introducción
 
 La diversidad genética es la materia prima sobre la que actúa la selección natural, la deriva génica y la adaptación. Cuantificarla no es un simple ejercicio descriptivo: permite inferir la historia demográfica de una especie, flujo génico entre poblaciones y señales de selección. En estudios de evolución, biogeografía o genética de poblaciones estas métricas son la base para contrastar hipótesis sobre rutas de dispersión, introgresión y diferenciación adaptativa local, etc.
 
