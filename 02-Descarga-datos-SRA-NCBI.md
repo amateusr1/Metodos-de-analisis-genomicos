@@ -1,7 +1,7 @@
 # 📥 Descargar datos desde el Sequence Read Archive (SRA)
 
 > **Autor:** Andrey Mateus-Ruiz  
-> **Curso:** Métodos de Análisis de Datos Genómicos (2018846-6)  
+> **Curso:** Métodos de Análisis Genómicos (2018846-6)  
 > **Profesor:** Ph.D. Gustavo Silva-Arias  
 > **Universidad Nacional de Colombia**
 
