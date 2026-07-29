@@ -5,7 +5,6 @@
 > **Profesor:** Ph.D. Gustavo Silva-Arias  
 > **Universidad Nacional de Colombia**
 
----
 
 > **Nota**
 >
