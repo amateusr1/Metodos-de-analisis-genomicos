@@ -36,5 +36,23 @@ Muchas herramientas calculan estadísticas de diversidad únicamente utilizando 
 En este curso se utilizó **Pixy**, una herramienta desarrollada para calcular estadísticas clásicas de genética de poblaciones a partir de archivos VCF que contienen tanto sitios variantes como invariantes (*all-sites VCF*). A diferencia de otros programas, Pixy produce estimaciones insesgadas incluso en presencia de datos faltantes (*missing data*), evitando la sobreestimación de parámetros como la diversidad nucleotídica (π).
 
 ---
+# Un flujo de trabajo completo para calcular diversidad genética con Pixy
+
+La instalación de pixy se realiza a través de conda. 
+
+```
+conda create -n "pixy" python=3.12
+conda activate pixy
+conda install -c conda-forge pixy
+conda install -c bioconda samtools
+```
+Pruebe la instalación ejecutando:
+```
+pixy --help
+```
+```
+
+```
+---
 
 
