@@ -513,7 +513,7 @@ El parámetro `-r` copia todos los archivos y subdirectorios de forma recursiva.
 
 ## Rsync
 
-`rsync` realiza la misma función que `scp`, pero es más eficiente para archivos grandes o transferencias repetidas. Solo copia la información que ha cambiado, por lo que normalmente es más rápido y permite reanudar transferencias interrumpidas.
+`rsync` realiza la misma función que `scp`, pero es más eficiente para archivos grandes o transferencias repetidas. Solo copia la información que ha cambiado, por lo que normalmente es más rápido y permite reanudar transferencias interrumpidas. No funcionará directamente en PowerShell a menos que instale una versión de rsync. Debe ejecutarse desde WLS como por ejemplo desde Ubuntu.
 
 ### Descargar un directorio
 
